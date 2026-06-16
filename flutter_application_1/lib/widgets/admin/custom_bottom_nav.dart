@@ -7,7 +7,11 @@ import 'package:flutter_application_1/screens/admin/pages/profil_admin_page.dart
 // WIDGET: BOTTOM NAVIGATION BAR
 // ==========================================
 class CustomBottomNavBar extends StatelessWidget {
-  const CustomBottomNavBar({super.key});
+  // 🔥 Tambahkan parameter ini untuk melacak halaman aktif
+  final int selectedIndex; 
+
+  // Default nilainya 0 (Home)
+  const CustomBottomNavBar({super.key, this.selectedIndex = 0}); 
 
   @override
   Widget build(BuildContext context) {
@@ -39,31 +43,36 @@ class CustomBottomNavBar extends StatelessWidget {
               padding: const EdgeInsets.only(left: 20),
               child: InkWell(
                 onTap: () {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const DashboardAdminPage(),
-                    ),
-                    (route) => false,
-                  );
+                  // Mencegah push layar berkali-kali jika sudah di Home
+                  if (selectedIndex != 0) {
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const DashboardAdminPage(),
+                      ),
+                      (route) => false,
+                    );
+                  }
                 },
                 splashColor: Colors.transparent,
                 highlightColor: Colors.transparent,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
+                  children: [
                     Icon(
                       Icons.grid_view_rounded,
-                      color: Color(0xFF0A3490),
+                      // 🔥 Warna berubah dinamis sesuai index
+                      color: selectedIndex == 0 ? const Color(0xFF0A3490) : const Color(0xFF6B7280),
                       size: 30,
                     ),
-                    SizedBox(height: 2),
+                    const SizedBox(height: 2),
                     Text(
                       "Home",
                       style: TextStyle(
                         fontSize: 13,
-                        color: Color(0xFF0A3490),
-                        fontWeight: FontWeight.w700,
+                        // 🔥 Warna dan ketebalan huruf berubah dinamis
+                        color: selectedIndex == 0 ? const Color(0xFF0A3490) : const Color(0xFF6B7280),
+                        fontWeight: selectedIndex == 0 ? FontWeight.w700 : FontWeight.w500,
                       ),
                     ),
                   ],
@@ -78,31 +87,35 @@ class CustomBottomNavBar extends StatelessWidget {
               padding: const EdgeInsets.only(right: 20),
               child: InkWell(
                 onTap: () {
-                  Navigator.pushAndRemoveUntil(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ProfileAdminPage(),
-                    ),
-                    (route) => false,
-                  );
+                  // Mencegah push layar berkali-kali jika sudah di Profil
+                  if (selectedIndex != 1) {
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ProfileAdminPage(),
+                      ),
+                      (route) => false,
+                    );
+                  }
                 },
                 splashColor: Colors.transparent,
                 highlightColor: Colors.transparent,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
-                  children: const [
+                  children: [
                     Icon(
-                      Icons.person_outline_rounded,
-                      color: Color(0xFF6B7280),
+                      // 🔥 Mengubah icon menjadi solid jika aktif (opsional agar mirip desain)
+                      selectedIndex == 1 ? Icons.person : Icons.person_outline_rounded, 
+                      color: selectedIndex == 1 ? const Color(0xFF0A3490) : const Color(0xFF6B7280),
                       size: 30,
                     ),
-                    SizedBox(height: 2),
+                    const SizedBox(height: 2),
                     Text(
                       "Profil",
                       style: TextStyle(
                         fontSize: 13,
-                        color: Color(0xFF6B7280),
-                        fontWeight: FontWeight.w500,
+                        color: selectedIndex == 1 ? const Color(0xFF0A3490) : const Color(0xFF6B7280),
+                        fontWeight: selectedIndex == 1 ? FontWeight.w700 : FontWeight.w500,
                       ),
                     ),
                   ],
@@ -146,7 +159,7 @@ class CustomFAB extends StatelessWidget {
                   context,
                   MaterialPageRoute(
                     builder:(context) => const DataMahasiswaPage(),
-                     ),
+                  ),
                 );
               },
               child: const Icon(

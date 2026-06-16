@@ -17,9 +17,13 @@ class DataMahasiswaPage extends StatefulWidget {
 
 class _DataMahasiswaPageState extends State<DataMahasiswaPage> {
   bool isLoading = true;
-  String errorMessage = ""; 
+  bool isLoadMore = false;
+  int currentPage = 1;
+  String errorMessage = "";
   List<MahasiswaModel> mahasiswa = [];
   final MahasiswaService mahasiswaService = MahasiswaService();
+  List<MahasiswaModel> filteredMahasiswa = []; // List yang akan ditampilkan
+  TextEditingController searchController = TextEditingController();
 
   @override
   void initState() {
@@ -27,30 +31,61 @@ class _DataMahasiswaPageState extends State<DataMahasiswaPage> {
     loadData();
   }
 
-  // ================= FUNGSI LOAD DATA =================
-  Future<void> loadData() async {
-    setState(() {
-      isLoading = true;
-      errorMessage = ""; 
-    }); 
-    
+  // ================= FUNGSI LOAD DATA (PAGINATION) =================
+Future<void> loadData({bool isLoadMoreAction = false}) async {
+    if (isLoadMoreAction) {
+      setState(() => isLoadMore = true);
+    } else {
+      setState(() {
+        isLoading = true;
+        errorMessage = "";
+        currentPage = 1;
+      });
+    }
+
     try {
-      final data = await mahasiswaService.getMahasiswa();
+      final pageToLoad = isLoadMoreAction ? currentPage + 1 : 1;
+      // Memanggil service dengan parameter page
+      final data = await mahasiswaService.getMahasiswa(page: pageToLoad);
+
       if (mounted) {
         setState(() {
-          mahasiswa = data;
+          if (isLoadMoreAction) {
+            mahasiswa.addAll(data); // Append data baru ke list lama
+            currentPage++;          // Increment halaman
+          } else {
+            mahasiswa = data;       // Reset untuk load awal/refresh
+          }
+          filteredMahasiswa = mahasiswa;
           isLoading = false;
+          isLoadMore = false;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
           isLoading = false;
+          isLoadMore = false;
           errorMessage = e.toString().replaceAll('Exception: ', '');
         });
       }
     }
   }
+
+  void _runFilter(String enteredKeyword) {
+  List<MahasiswaModel> results = [];
+  if (enteredKeyword.isEmpty) {
+    results = mahasiswa;
+  } else {
+    results = mahasiswa.where((mhs) =>
+        mhs.nama.toLowerCase().contains(enteredKeyword.toLowerCase()) ||
+        mhs.nim.toLowerCase().contains(enteredKeyword.toLowerCase())).toList();
+  }
+
+  setState(() {
+    filteredMahasiswa = results;
+  });
+}
 
   // ================= FUNGSI PROSES HAPUS (API) =================
   Future<void> _prosesHapusMahasiswa(BuildContext context, String nim) async {
@@ -216,6 +251,8 @@ class _DataMahasiswaPageState extends State<DataMahasiswaPage> {
 
               // ===== SEARCH =====
               TextField(
+                controller: searchController,
+                onChanged: (value) => _runFilter(value),
                 decoration: InputDecoration(
                   hintText: "Cari NIM atau Nama...",
                   prefixIcon: const Icon(Icons.search),
@@ -277,27 +314,83 @@ class _DataMahasiswaPageState extends State<DataMahasiswaPage> {
                   ),
                 )
               // 🔥 JIKA DATA ADA
-              else
-                Column(
-                  children: mahasiswa.map((item) {
-                    return StudentCard(
-                      nim: item.nim,
-                      nama: item.nama,
-                      jurusan: item.idProdi, 
-                      semester: "N/A", 
-                      status: item.status,
-                      onDetail: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => DetailMahasiswaPage(mahasiswa: item)));
-                      },
-                      onEdit: () {
-                        Navigator.push(context, MaterialPageRoute(builder: (_) => EditMahasiswaPage(mahasiswa: item)));
-                      },
-                      onDelete: () {
-                        _showDeleteConfirmation(context, item);
-                      },
-                    );
-                  }).toList(),
+            else
+  Column(
+    children: [
+      // 1. Daftar Mahasiswa
+      ListView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: filteredMahasiswa.length,
+        itemBuilder: (context, index) {
+          final item = filteredMahasiswa[index];
+          return StudentCard(
+            nim: item.nim,
+            nama: item.nama,
+            jurusan: item.prodi,
+            semester: "N/A",
+            status: item.status,
+            onDetail: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => DetailMahasiswaPage(
+                    daftarMahasiswa: mahasiswa,
+                    indexAwal: index, // Gunakan index langsung dari builder
+                  ),
                 ),
+              );
+            },
+            onEdit: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => EditMahasiswaPage(mahasiswa: item)),
+              );
+            },
+            onDelete: () {
+              _showDeleteConfirmation(context, item);
+            },
+          );
+        },
+      ),
+
+      const SizedBox(height: 16),
+
+      // 2. Tombol Lainnya (Load More)
+      Center(
+        child: Material(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(30),
+          child: InkWell(
+            borderRadius: BorderRadius.circular(30),
+            onTap: () {
+              // 🔥 Panggil loadData dengan mode load more
+            loadData(isLoadMoreAction: true);
+            },
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(30),
+                border: Border.all(color: const Color(0xFFDDE5FF), width: 1.5),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: const [
+                  Text(
+                    "Lainnya",
+                    style: TextStyle(color: Color(0xFF2563EB), fontWeight: FontWeight.w600, fontSize: 14),
+                  ),
+                  SizedBox(width: 4),
+                  Icon(Icons.keyboard_arrow_down, color: Color(0xFF2563EB), size: 18),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ),
+      const SizedBox(height: 16), // Jarak sebelum footer
+    ],
+  ),
 
               const SizedBox(height: 30),
               const Center(

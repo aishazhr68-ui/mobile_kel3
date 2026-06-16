@@ -155,7 +155,7 @@ Widget _buildProfileCard() {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   const Text(
-                    "Andi Pratama",
+                    "Aufa Qonita Salsabila",
                     style: TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -166,7 +166,7 @@ Widget _buildProfileCard() {
                   const SizedBox(height: 4),
 
                   const Text(
-                    "NIM: A020325112",
+                    "NIM: C030324011",
                     style: TextStyle(
                       fontSize: 13,
                       color: Color(0xFF64748B),
@@ -221,7 +221,7 @@ Widget _buildProfileCard() {
                   ),
                   SizedBox(height: 4),
                   Text(
-                    "D3 Teknik Pertambangan",
+                    "D3 Teknik Informatika",
                     style: TextStyle(
                       fontSize: 13,
                       color: Color(0xFF334155),
@@ -246,7 +246,7 @@ Widget _buildProfileCard() {
                   ),
                   SizedBox(height: 4),
                   Text(
-                    "TP-2C",
+                    "TI-4C",
                     style: TextStyle(
                       fontSize: 13,
                       color: Color(0xFF334155),

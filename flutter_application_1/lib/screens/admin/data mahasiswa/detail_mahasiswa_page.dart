@@ -4,9 +4,14 @@ import 'package:flutter_application_1/models/admin/mahasiswa_model.dart';
 import '../../../services/admin/mahasiswa_service.dart';
 
 class DetailMahasiswaPage extends StatefulWidget {
-  final MahasiswaModel mahasiswa; // Menerima data dari halaman list
+  final List<MahasiswaModel> daftarMahasiswa; 
+  final int indexAwal;
 
-  const DetailMahasiswaPage({super.key, required this.mahasiswa});
+  const DetailMahasiswaPage({
+    super.key, 
+    required this.daftarMahasiswa,
+    required this.indexAwal,
+  });
 
   @override
   State<DetailMahasiswaPage> createState() => _DetailMahasiswaPageState();
@@ -15,7 +20,6 @@ class DetailMahasiswaPage extends StatefulWidget {
 class _DetailMahasiswaPageState extends State<DetailMahasiswaPage> {
   int selectedTab = 0;
   
-  // 🔥 Variabel State dipindahkan ke SINI (di dalam State Class)
   MahasiswaModel? detailData; 
   bool isLoading = true;
   final MahasiswaService _mahasiswaService = MahasiswaService();
@@ -26,11 +30,18 @@ class _DetailMahasiswaPageState extends State<DetailMahasiswaPage> {
     fetchDetailData();
   }
 
+  // Fungsi untuk memuat data berdasarkan index yang diklik dari halaman sebelumnya
   Future<void> fetchDetailData() async {
+    if (mounted) {
+      setState(() {
+        isLoading = true;
+      });
+    }
+
     try {
-      // Mengambil data berdasarkan NIM dari widget (mahasiswa yang dipilih)
-      // Catatan: Jika API Anda belum siap, Anda bisa sementara menggunakan widget.mahasiswa
-      final data = await _mahasiswaService.getDetailMahasiswa(widget.mahasiswa.nim);
+      final nimAktif = widget.daftarMahasiswa[widget.indexAwal].nim;
+      final data = await _mahasiswaService.getDetailMahasiswa(nimAktif);
+      print("DEBUG STATUS API DETAIL: ${data.status}");
       
       if (mounted) {
         setState(() {
@@ -42,26 +53,22 @@ class _DetailMahasiswaPageState extends State<DetailMahasiswaPage> {
       if (mounted) setState(() => isLoading = false);
     }
   }
+
   @override
   Widget build(BuildContext context) {
-    // Tampilkan loading saat API sedang berjalan
-    if (isLoading) {
-      return const Scaffold(body: Center(child: CircularProgressIndicator()));
-    }
-
-    // Gunakan data dari detailData (API) atau widget.mahasiswa (fallback)
-    final mhs = detailData ?? widget.mahasiswa;
+    // Ambil data dasar dari List jika API belum selesai memuat (Fallback)
+    final mhs = detailData ?? widget.daftarMahasiswa[widget.indexAwal];
     
     return Scaffold(
       backgroundColor: const Color(0xFFF3F4F6),
-      extendBody: true, // 🔥 Biar FAB menyatu dengan lengkungan navbar
+      extendBody: true,
 
       // ================= FLOAT BUTTON =================
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: const CustomFAB(), // 🔥 Panggil CustomFAB
+      floatingActionButton: const CustomFAB(),
 
       // ================= BOTTOM NAV =================
-      bottomNavigationBar: const CustomBottomNavBar(), // 🔥 Panggil CustomBottomNavBar
+      bottomNavigationBar: const CustomBottomNavBar(),
 
       appBar: AppBar(
         backgroundColor: Colors.transparent,
@@ -82,140 +89,148 @@ class _DetailMahasiswaPageState extends State<DetailMahasiswaPage> {
       ),
 
       // ================= BODY =================
-      body: SafeArea(
-        child: ListView(
-          padding: const EdgeInsets.fromLTRB(20, 20, 20, 120), // Padding bawah agar konten tidak tertutup nav
-          children: [
-            const Text(
-              "Data Mahasiswa",
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
-            ),
-            const SizedBox(height: 4),
-            const Text(
-              "Detail Data Mahasiswa",
-              style: TextStyle(color: Colors.grey),
-            ),
-            const SizedBox(height: 20),
+      body: isLoading 
+        ? const Center(child: CircularProgressIndicator(color: Color(0xFF2563EB)))
+        : SafeArea(
+            child: ListView(
+              padding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
+              children: [
+                const Text(
+                  "Data Mahasiswa",
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700),
+                ),
+                const SizedBox(height: 4),
+                const Text(
+                  "Detail Data Mahasiswa",
+                  style: TextStyle(color: Colors.grey),
+                ),
+                const SizedBox(height: 20),
 
-            // ================= CARD PROFIL UTAMA =================
-            Container(
-              padding: const EdgeInsets.all(18),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.06),
-                    blurRadius: 20,
-                    offset: const Offset(0, 8),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // HEADER
-                  Row(
-                    children: [
-                      Container(
-                        width: 64,
-                        height: 64,
-                        decoration: BoxDecoration(
-                          shape: BoxShape.circle,
-                          color: const Color(0xFFDDE5FF),
-                          border: Border.all(
-                            color: const Color(0xFF2563EB),
-                            width: 2,
-                          ),
-                        ),
-                        child: const Icon(
-                          Icons.person,
-                          color: Color(0xFF2563EB), 
-                          size: 30,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  mhs.nama, 
-                                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
-                                ),
-                                // Container Status Dinamis
-                                Container(
-                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                                  decoration: BoxDecoration(
-                                    // Pengecekan warna background langsung di dalam widget
-                                    color: mhs.status == "AKTIF" ? const Color(0xFFD1FAE5) : const Color(0xFFFEE2E2),
-                                    borderRadius: BorderRadius.circular(20),
-                                  ),
-                                  child: Text(
-                                    mhs.status.toUpperCase(),
-                                    style: TextStyle(
-                                      // Pengecekan warna teks langsung di dalam widget
-                                      color: mhs.status == "AKTIF" ? const Color(0xFF16A34A) : Colors.red,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
-                                ),
-                              ],
-                            ),
-                            const SizedBox(height: 4),
-                            Text("NIM: ${mhs.nim}", style: const TextStyle(color: Colors.grey)),
-                          ],
-                        ),
+                // ================= CARD PROFIL UTAMA =================
+                Container(
+                  padding: const EdgeInsets.all(18),
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.06), 
+                        blurRadius: 20,
+                        offset: const Offset(0, 8),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 14),
-                  Divider(color: Colors.grey.shade300),
-                  const SizedBox(height: 14),
-                  _profileDetailRow("Program Studi", "D3 Teknik Pertambangan"),
-                  const SizedBox(height: 12),
-                  _profileDetailRow("Tahun Akademik", "2025/2026"),
-                  const SizedBox(height: 12),
-                  _profileDetailRow("Kelas", "TP-2C"),
-                ],
-              ),
-            ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // HEADER
+                      Row(
+                        children: [
+                          Container(
+                            width: 64,
+                            height: 64,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                              color: const Color(0xFFDDE5FF),
+                              border: Border.all(
+                                color: const Color(0xFF2563EB),
+                                width: 2,
+                              ),
+                            ),
+                            child: const Icon(
+                              Icons.person,
+                              color: Color(0xFF2563EB), 
+                              size: 30,
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Expanded(
+                                      child: Text(
+                                        mhs.nama, 
+                                        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
+                                        overflow: TextOverflow.ellipsis,
+                                      ),
+                                    ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                                decoration: BoxDecoration(
+                                  // Gunakan mhs.status.toUpperCase() agar pengecekan konsisten
+                                  color: mhs.status.toUpperCase() == "AKTIF" ? const Color(0xFFD1FAE5) : const Color(0xFFFEE2E2),
+                                  borderRadius: BorderRadius.circular(20),
+                                ),
+                                child: Text(
+                                  mhs.status.toUpperCase(),
+                                  style: TextStyle(
+                                    color: mhs.status.toUpperCase() == "AKTIF" ? const Color(0xFF16A34A) : Colors.red,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                              ),
+                              ],
+                                ),
+                                const SizedBox(height: 4),
+                                Text("NIM: ${mhs.nim}", style: const TextStyle(color: Colors.grey)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      Divider(color: Colors.grey.shade300),
+                      const SizedBox(height: 14),
+                      _profileDetailRow("Program Studi", mhs.prodi ?? "D3 Teknik Pertambangan"),
+                      const SizedBox(height: 12),
+                      _profileDetailRow("Tahun Akademik", mhs.tahunAkademik ?? "2025/2026"),
+                      const SizedBox(height: 12),
+                      _profileDetailRow("Kelas", mhs.kelas ?? "TP-2C"),
+                    ],
+                  ),
+                ),
 
-            const SizedBox(height: 20),
+                const SizedBox(height: 20),
 
-            // ================= TAB =================
-            SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                children: [
-                  _tabItem("Identitas", 0),
-                  _tabItem("Domisili", 1),
-                  _tabItem("Orang Tua/Wali", 2),
-                  _tabItem("Sekolah", 3),
-                ],
-              ),
+                // ================= TAB SELECTION =================
+                SingleChildScrollView(
+                  scrollDirection: Axis.horizontal,
+                  child: Row(
+                    children: [
+                      _tabItem("Identitas", 0),
+                      _tabItem("Domisili", 1),
+                      _tabItem("Orang Tua/Wali", 2),
+                      _tabItem("Sekolah", 3),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: 15),
+                
+                // Konten Tab
+                _buildTabContent(mhs), 
+                
+                const SizedBox(height: 30),
+                
+                // Footer Copyright
+                const Center(
+                  child: Text(
+                    "© 2026 Politeknik Negeri Banjarmasin.\nSistem Informasi Akademik Terpadu.",
+                    textAlign: TextAlign.center,
+                    style: TextStyle(color: Colors.grey, fontSize: 12),
+                  ),
+                ),
+              ],
             ),
-            const SizedBox(height: 15),
-            _buildTabContent(),
-            const SizedBox(height: 20),
-            const Center(
-              child: Text(
-                "© 2026 Politeknik Negeri Banjarmasin.\nSistem Informasi Akademik Terpadu.",
-                textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey, fontSize: 12),
-              ),
-            ),
-          ],
-        ),
-      ),
+          ),
     );
   }
 
-  // Helper Widget Tab & Content (sama seperti kode Anda sebelumnya)
+  // Helper Widget Tab Item
   Widget _tabItem(String title, int index) {
     bool active = selectedTab == index;
     return GestureDetector(
@@ -233,24 +248,23 @@ class _DetailMahasiswaPageState extends State<DetailMahasiswaPage> {
     );
   }
   
-
-  // ================= CONTENT =================
-Widget _buildTabContent() {
+  // ================= DYNAMIC CONTENT FROM API =================
+  Widget _buildTabContent(MahasiswaModel mhs) {
     switch (selectedTab) {
       case 0:
-        return Column( // 🔥 PASTIKAN ADA 'return'
+        return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text("Data Identitas", style: TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 10),
-            _dataBox("NIM", "A020325112"),
-            _dataBox("NAMA LENGKAP", "Andi Pratama"),
-            _dataBox("JENIS KELAMIN", "Laki-laki"),
-            _dataBox("TANGGAL LAHIR", "17-05-2007"),
-            _dataBox("AGAMA", "Islam"),
-            _dataBox("EMAIL", "andipratama@gmail.com"),
-            _dataBox("NO HP", "0813-0000-2314"),
-            _dataBox("STATUS MAHASISWA", "Aktif", isGreen: true),
+            _dataBox("NIM", mhs.nim),
+            _dataBox("NAMA LENGKAP", mhs.nama),
+            _dataBox("JENIS KELAMIN", mhs.jenisKelamin ?? "-"),
+            _dataBox("TANGGAL LAHIR", mhs.tanggalLahir ?? "-"),
+            _dataBox("AGAMA", mhs.agama ?? "-"),
+            _dataBox("EMAIL", mhs.email ?? "-"),
+            _dataBox("NO HP", mhs.noHp ?? "-"),
+            _dataBox("STATUS MAHASISWA", mhs.status, isGreen: mhs.status.toUpperCase() == "AKTIF"),
           ],
         );
 
@@ -258,20 +272,15 @@ Widget _buildTabContent() {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              "Domisili",
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
+            const Text("Domisili", style: TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 10),
-            _dataBox("ALAMAT", "Jl. Sultan Adam Komp. Mahligai"),
-            _dataBox("RT / RW", "20 / 01"),
-            _dataBox("NO", "102"),
-            _dataBox("PROVINSI", "Kalimantan Selatan"),
-            _dataBox("KABUPATEN/KOTA", "Kota Banjarmasin"),
-            _dataBox("KECAMATAN", "Banjarmasin Utara"),
-            _dataBox("KELURAHAN/DESA", "Sungai Jingah"),
-            _dataBox("KODE POS", "70121"),
-            _dataBox("STATUS TINGGAL", "Rumah Orang Tua"),
+            // Mengikuti bagian yang Anda hapus sebelumnya
+            _dataBox("ALAMAT", mhs.alamat ?? "-"),
+            _dataBox("PROVINSI", mhs.provinsi ?? "-"),
+            _dataBox("KABUPATEN/KOTA", mhs.kabupatenKota ?? "-"),
+            _dataBox("KECAMATAN", mhs.kecamatan ?? "-"),
+            _dataBox("KELURAHAN/DESA", mhs.kelurahanDesa ?? "-"),
+            _dataBox("KODE POS", mhs.kodePos ?? "-"),
           ],
         );
 
@@ -279,38 +288,28 @@ Widget _buildTabContent() {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              "Data Orang Tua",
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
+            const Text("Data Orang Tua", style: TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 12),
             _parentCard(
               "NAMA AYAH",
-              "Slamet Riyadi",
-              "Karyawan Swasta",
-              "0812-3422-2100",
-              "Rp6.000.000 – Rp 8.000.000",
+              mhs.namaAyah ?? "-",
+              mhs.pekerjaanAyah ?? "-",
+              mhs.noHpAyah ?? "-",
+              mhs.penghasilanAyah ?? "-",
             ),
             _parentCard(
               "NAMA IBU",
-              "Fitriyani",
-              "Ibu Rumah Tangga",
-              "0813-2120-0908",
-              "≤ Rp1.000.000",
+              mhs.namaIbu ?? "-",
+              mhs.pekerjaanIbu ?? "-",
+              mhs.noHpIbu ?? "-",
+              mhs.penghasilanIbu ?? "-",
             ),
             _parentCard(
               "NAMA WALI",
-              "-",
-              "-",
-              "-",
-              "-",
-            ),
-       _parentCard(
-              "NAMA WALI",
-              "-",
-              "-",
-              "-",
-              "-",
+              mhs.namaWali ?? "-",
+              mhs.pekerjaanWali ?? "-",
+              mhs.noHpWali ?? "-",
+              mhs.penghasilanWali ?? "-",
             ),
           ],
         );
@@ -319,14 +318,13 @@ Widget _buildTabContent() {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
-              "Data Sekolah",
-              style: TextStyle(fontWeight: FontWeight.w600),
-            ),
+            const Text("Data Sekolah", style: TextStyle(fontWeight: FontWeight.w600)),
             const SizedBox(height: 12),
-            _schoolCard(),
-            _alamatSekolahCard(),
-            _ijazahCard(),
+            _schoolCard(
+              mhs.jenisSekolah ?? "-",
+              mhs.namaSekolah ?? "-"), 
+            _alamatSekolahCard(
+              mhs.kotaSekolah ?? "-"), 
           ],
         );
 
@@ -335,24 +333,14 @@ Widget _buildTabContent() {
     }
   }
 
-  // ================= MISSING WIDGETS ADDED & IMPR0VED =================
-
+  // ================= MODIFIED WIDGETS =================
   Widget _dataBoxSimple(String label, String value) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
-        ),
+        Text(label, style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8))),
         const SizedBox(height: 4),
-        Text(
-          value,
-          style: const TextStyle(
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF0F172A), // Hitam
-          ),
-        ),
+        Text(value, style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF0F172A))),
         const SizedBox(height: 10),
       ],
     );
@@ -370,18 +358,14 @@ Widget _buildTabContent() {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            label,
-            style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
-          ),
+          Text(label, style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8))),
           const SizedBox(height: 6),
           Text(
             value,
             style: TextStyle(
               fontSize: 15,
               fontWeight: FontWeight.w600,
-              color:
-                  isGreen ? const Color(0xFF16A34A) : const Color(0xFF0F172A),
+              color: isGreen ? const Color(0xFF16A34A) : const Color(0xFF0F172A),
             ),
           ),
         ],
@@ -389,29 +373,20 @@ Widget _buildTabContent() {
     );
   }
 
-  // 🔹 WIDGET BARU UNTUK CARD PROFIL (RATA KANAN-KIRI TANPA TITIK DUA)
   Widget _profileDetailRow(String label, String value) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: const TextStyle(fontSize: 13, color: Colors.grey),
-        ),
+        Text(label, style: const TextStyle(fontSize: 13, color: Colors.grey)),
         Text(
           value,
-          style: const TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.w600,
-            color: Color(0xFF0F172A),
-          ),
+          style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: Color(0xFF0F172A)),
         ),
       ],
     );
   }
 
-  Widget _parentCard(String label, String nama, String pekerjaan, String hp,
-      String penghasilan) {
+  Widget _parentCard(String label, String nama, String pekerjaan, String hp, String penghasilan) {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 14),
@@ -423,58 +398,25 @@ Widget _buildTabContent() {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label,
-              style: const TextStyle(
-                fontSize: 11,
-                color: Color(0xFF94A3B8),
-              )),
+          Text(label, style: const TextStyle(fontSize: 11, color: Color(0xFF94A3B8))),
           const SizedBox(height: 6),
-          Text(nama,
-              style: const TextStyle(
-                fontSize: 15,
-                fontWeight: FontWeight.w700,
-                color: Color(0xFF0F172A),
-              )),
+          Text(nama, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Color(0xFF0F172A))),
           const SizedBox(height: 10),
-          const Text("PEKERJAAN",
-              style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8))),
-          Text(
-            pekerjaan,
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF0F172A),
-            ),
-          ),
+          const Text("PEKERJAAN", style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8))),
+          Text(pekerjaan, style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF0F172A))),
           const SizedBox(height: 10),
-          const Text(
-            "NO. HP",
-            style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
-          ),
-          Text(
-            hp,
-            style: const TextStyle(
-              color: Colors.blue,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          const Text("NO. HP", style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8))),
+          Text(hp, style: const TextStyle(color: Colors.blue, fontWeight: FontWeight.w600)),
           const SizedBox(height: 10),
-          const Text(
-            "PENGHASILAN",
-            style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
-          ),
-          Text(
-            penghasilan,
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF0F172A),
-            ),
-          ),
+          const Text("PENGHASILAN", style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8))),
+          Text(penghasilan, style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF0F172A))),
         ],
       ),
     );
   }
 
-  Widget _schoolCard() {
+  // Definisi diubah agar HANYA menerima 3 parameter (sesuai yang Anda hapus)
+Widget _schoolCard(String jenisSekolah, String namaSekolah) {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 14),
@@ -486,84 +428,21 @@ Widget _buildTabContent() {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 🔹 Tambahkan Jenis Sekolah (Rata Kiri Kolom)
-          _dataBoxSimple("Jenis Sekolah", "SMA"),
-
-          // 🔹 Sekolah (LABEL + LINK STYLE, Rata Kiri Kolom)
-          const Text(
-            "Sekolah",
-            style: TextStyle(
-              fontSize: 11,
-              color: Color(0xFF94A3B8), // abu label
-            ),
-          ),
+          _dataBoxSimple("Jenis Sekolah", jenisSekolah),
+          const Text("Sekolah", style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8))),
           const SizedBox(height: 4),
-          const Text(
-            "30304271 - SMA Negeri 5 Banjarmasin",
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              color: Colors.blue, // 🔥 tetap biru
-            ),
+          Text(
+            namaSekolah,
+            style: const TextStyle(fontWeight: FontWeight.w600, color: Colors.blue),
           ),
-          const SizedBox(height: 10),
-
-          // 🔹 Layout Dua Kolom Baru (Masing-masing Rata Kiri)
-          Row(
-            children: [
-              // Kolom 1
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
-                      "No Ijazah Sekolah",
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Color(0xFF94A3B8),
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      "0000011",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF0F172A), // hitam
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // Kolom 2
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
-                      "NISN",
-                      style: TextStyle(
-                        fontSize: 11,
-                        color: Color(0xFF94A3B8),
-                      ),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      "0078349391",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF0F172A),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
+          // NISN dan Column-nya sudah dihapus
         ],
       ),
     );
   }
 
-  Widget _alamatSekolahCard() {
+  // Widget _alamatSekolahCard sekarang HANYA menerima 1 parameter (kota)
+  Widget _alamatSekolahCard(String kota) {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 14),
@@ -575,109 +454,10 @@ Widget _buildTabContent() {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // 🔹 TITLE + ICON (Rata Kiri Kolom)
-          Row(
-            children: const [
-              Icon(Icons.location_on_outlined, size: 16, color: Colors.grey),
-              SizedBox(width: 6),
-              Text(
-                "Alamat Sekolah",
-                style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-
-          // 🔹 VALUE ALAMAT (Rata Kiri Kolom)
-          const Text(
-            "Jl. Sultan Adam No.76, Surgi Mufti",
-            style: TextStyle(
-              fontWeight: FontWeight.w600,
-              color: Color(0xFF0F172A),
-            ),
-          ),
-          const SizedBox(height: 12),
-
-          // 🔹 Layout Dua Kolom Baru (Masing-masing Rata Kiri)
-          Row(
-            children: [
-              // Kolom 1
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
-                      "Provinsi",
-                      style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      "Kalimantan Selatan",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF0F172A),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              // Kolom 2
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: const [
-                    Text(
-                      "Kota",
-                      style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
-                    ),
-                    SizedBox(height: 4),
-                    Text(
-                      "Kota Banjarmasin",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF0F172A),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _ijazahCard() {
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.only(bottom: 14),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: const Color(0xFFE2E8F0),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: const [
-              Icon(Icons.description_outlined, size: 16, color: Colors.grey),
-              SizedBox(width: 6),
-              Text(
-                "File Ijazah Terakhir",
-                style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8)),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          const Text(
-            "Belum Diunggah",
-            style: TextStyle(
-              color: Colors.red,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
+          // Alamat sudah dihapus
+          const Text("Kota", style: TextStyle(fontSize: 11, color: Color(0xFF94A3B8))),
+          const SizedBox(height: 4),
+          Text(kota, style: const TextStyle(fontWeight: FontWeight.w600, color: Color(0xFF0F172A))),
         ],
       ),
     );

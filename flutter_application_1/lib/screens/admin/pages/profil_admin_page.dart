@@ -58,7 +58,7 @@ class _ProfileAdminPageState extends State<ProfileAdminPage> {
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
 
       // ================= BOTTOM NAV =================
-      bottomNavigationBar: const CustomBottomNavBar(),
+bottomNavigationBar: CustomBottomNavBar(selectedIndex: 1),
 
       appBar: AppBar(
         backgroundColor: const Color(0xFFF8FAFC),

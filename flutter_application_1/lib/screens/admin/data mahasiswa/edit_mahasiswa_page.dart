@@ -8,10 +8,10 @@ class EditMahasiswaPage extends StatefulWidget {
   const EditMahasiswaPage({super.key, required this.mahasiswa});
 
   @override
-  State<EditMahasiswaPage> createState() => _editmahasiswapage();
+  State<EditMahasiswaPage> createState() => _EditMahasiswaPageState();
 }
 
-class _editmahasiswapage extends State<EditMahasiswaPage> {
+class _EditMahasiswaPageState extends State<EditMahasiswaPage> {
   int selectedTab = 0;
 
   MahasiswaModel? editData;
@@ -21,7 +21,7 @@ class _editmahasiswapage extends State<EditMahasiswaPage> {
   @override
   void initState() {
     super.initState();
-    // 🔥 3. Panggil data detail agar form terisi otomatis
+    // Panggil data detail agar form terisi otomatis dari API
     fetchData();
   }
 
@@ -39,7 +39,7 @@ class _editmahasiswapage extends State<EditMahasiswaPage> {
     }
   }
 
-   @override
+  @override
   Widget build(BuildContext context) {
     // Tampilkan loading saat API sedang berjalan
     if (isLoading) {
@@ -51,11 +51,11 @@ class _editmahasiswapage extends State<EditMahasiswaPage> {
     
     return Scaffold(
       backgroundColor: const Color(0xFFF3F4F6),
-      extendBody: true, // 🔥 Biar FAB menyatu dengan lengkungan navbar
+      extendBody: true,
 
       // ================= FLOAT BUTTON =================
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: const CustomFAB(), // 🔥 Panggil CustomFAB
+      floatingActionButton: const CustomFAB(),
 
       // ================= BOTTOM NAV =================
       bottomNavigationBar: const CustomBottomNavBar(),
@@ -71,7 +71,7 @@ class _editmahasiswapage extends State<EditMahasiswaPage> {
             ),
             const SizedBox(height: 4),
             const Text(
-              "Update Data Mahasiswa", // 🔥 DIUBAH
+              "Update Data Mahasiswa",
               style: TextStyle(color: Colors.grey),
             ),
             const SizedBox(height: 20),
@@ -84,7 +84,7 @@ class _editmahasiswapage extends State<EditMahasiswaPage> {
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.06),
+                    color: Colors.black.withOpacity(0.06),
                     blurRadius: 20,
                     offset: const Offset(0, 8),
                   ),
@@ -117,24 +117,27 @@ class _editmahasiswapage extends State<EditMahasiswaPage> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text(
-                                  "Andi Pratama",
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 18,
+                                Expanded(
+                                  child: Text(
+                                    mhs.nama, // 🔥 Nama dinamis
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w700,
+                                      fontSize: 18,
+                                    ),
+                                    overflow: TextOverflow.ellipsis,
                                   ),
                                 ),
                                 Container(
                                   padding: const EdgeInsets.symmetric(
                                       horizontal: 10, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFD1FAE5),
+                                    color: mhs.status.toUpperCase() == "AKTIF" ? const Color(0xFFD1FAE5) : const Color(0xFFFEE2E2),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
-                                  child: const Text(
-                                    "AKTIF",
+                                  child: Text(
+                                    mhs.status.toUpperCase(), // 🔥 Status dinamis
                                     style: TextStyle(
-                                      color: Color(0xFF16A34A),
+                                      color: mhs.status.toUpperCase() == "AKTIF" ? const Color(0xFF16A34A) : Colors.red,
                                       fontSize: 11,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -143,9 +146,9 @@ class _editmahasiswapage extends State<EditMahasiswaPage> {
                               ],
                             ),
                             const SizedBox(height: 4),
-                            const Text(
-                              "NIM: A020325112",
-                              style: TextStyle(color: Colors.grey),
+                            Text(
+                              "NIM: ${mhs.nim}", // 🔥 NIM dinamis
+                              style: const TextStyle(color: Colors.grey),
                             ),
                           ],
                         ),
@@ -157,11 +160,12 @@ class _editmahasiswapage extends State<EditMahasiswaPage> {
                   Divider(color: Colors.grey.shade300),
                   const SizedBox(height: 14),
 
-                  _profileDetailRow("Program Studi", "D3 Teknik Pertambangan"),
+                  // 🔥 Info dinamis
+                  _profileDetailRow("Program Studi", mhs.prodi ?? "Belum diatur"),
                   const SizedBox(height: 12),
-                  _profileDetailRow("Tahun Akademik", "2025/2026"),
+                  _profileDetailRow("Tahun Akademik", mhs.tahunAkademik ?? "Belum diatur"),
                   const SizedBox(height: 12),
-                  _profileDetailRow("Kelas", "TP-2C"),
+                  _profileDetailRow("Kelas", mhs.kelas ?? "Belum diatur"),
                 ],
               ),
             ),
@@ -183,7 +187,8 @@ class _editmahasiswapage extends State<EditMahasiswaPage> {
 
             const SizedBox(height: 15),
 
-            _buildTabContent(),
+            // Render isi tab yang dinamis
+            _buildTabContent(mhs),
 
             const SizedBox(height: 24),
             
@@ -207,7 +212,7 @@ class _editmahasiswapage extends State<EditMahasiswaPage> {
     );
   }
 
-  // ================= TAB =================
+  // ================= TAB WIDGET =================
   Widget _tabItem(String title, int index) {
     bool active = selectedTab == index;
 
@@ -241,8 +246,8 @@ class _editmahasiswapage extends State<EditMahasiswaPage> {
     );
   }
 
-  // ================= CONTENT FORM =================
-  Widget _buildTabContent() {
+  // ================= CONTENT FORM (WITH API DATA) =================
+  Widget _buildTabContent(MahasiswaModel mhs) {
     switch (selectedTab) {
       // ---------------- TAB 0: IDENTITAS ----------------
       case 0:
@@ -254,14 +259,14 @@ class _editmahasiswapage extends State<EditMahasiswaPage> {
               style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
             ),
             const SizedBox(height: 16),
-            _buildTextField("NIM", "A020325112", isRequired: true),
-            _buildTextField("Nama Lengkap", "Andi Pratama", isRequired: true),
-            _buildTextField("Tanggal Lahir", "01/01/2000", isRequired: true, suffixIcon: Icons.calendar_today_outlined),
-            _buildDropdown("Jenis Kelamin", "Laki-laki", ["Laki-laki", "Perempuan"], isRequired: true),
-            _buildTextField("No. Hp", "0813-0000-2314", isRequired: true),
-            _buildTextField("Email", "andipratama@gmail.com", isRequired: true),
-            _buildDropdown("Agama", "Islam", ["Islam", "Kristen", "Katolik", "Hindu", "Buddha", "Konghucu"], isRequired: true),
-            _buildDropdown("Status Mahasiswa", "Aktif", ["Aktif", "Cuti", "Lulus"], isRequired: true),
+            _buildTextField("NIM", mhs.nim, isRequired: true),
+            _buildTextField("Nama Lengkap", mhs.nama, isRequired: true),
+            _buildTextField("Tanggal Lahir", mhs.tanggalLahir ?? "", isRequired: true, suffixIcon: Icons.calendar_today_outlined),
+            _buildTextField("Jenis Kelamin", mhs.jenisKelamin ?? "", isRequired: true), // Sementara pakai TextField biasa
+            _buildTextField("No. Hp", mhs.noHp ?? "", isRequired: true),
+            _buildTextField("Email", mhs.email ?? "", isRequired: true),
+            _buildTextField("Agama", mhs.agama ?? "", isRequired: true),
+            _buildTextField("Status Mahasiswa", mhs.status, isRequired: true),
           ],
         );
 
@@ -275,22 +280,12 @@ class _editmahasiswapage extends State<EditMahasiswaPage> {
               style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
             ),
             const SizedBox(height: 16),
-            _buildTextField("Alamat", "Jl. Sultan Adam Komp. Mahligai", isRequired: true),
-            Row(
-              children: [
-                Expanded(child: _buildTextField("RT", "20", isRequired: true)),
-                const SizedBox(width: 12),
-                Expanded(child: _buildTextField("RW", "01", isRequired: true)),
-                const SizedBox(width: 12),
-                Expanded(child: _buildTextField("No", "102", isRequired: true)),
-              ],
-            ),
-            _buildTextField("Provinsi", "Kalimantan Selatan", isRequired: true),
-            _buildTextField("Kabupaten/Kota", "Kota Banjarmasin", isRequired: true),
-            _buildTextField("Kecamatan", "Banjarmasin Utara", isRequired: true),
-            _buildTextField("Kelurahan/Desa", "Sungai Jingah", isRequired: true),
-            _buildTextField("Kode Pos", "70121", isRequired: true),
-            _buildDropdown("Status Tinggal", "Rumah Orang Tua", ["Rumah Orang Tua", "Kost", "Asrama"], isRequired: true),
+            _buildTextField("Alamat", mhs.alamat ?? "", isRequired: true),
+            _buildTextField("Provinsi", mhs.provinsi ?? "", isRequired: true),
+            _buildTextField("Kabupaten/Kota", mhs.kabupatenKota ?? "", isRequired: true),
+            _buildTextField("Kecamatan", mhs.kecamatan ?? "", isRequired: true),
+            _buildTextField("Kelurahan/Desa", mhs.kelurahanDesa ?? "", isRequired: true),
+            _buildTextField("Kode Pos", mhs.kodePos ?? "", isRequired: true),
           ],
         );
 
@@ -307,28 +302,28 @@ class _editmahasiswapage extends State<EditMahasiswaPage> {
             
             // Ayah
             _buildSectionHeader("Data Ayah"),
-            _buildTextField("Nama Ayah", "Slamet Riyadi", isRequired: true),
-            _buildDropdown("Pekerjaan Ayah", "Karyawan Swasta", ["Karyawan Swasta", "Wiraswasta", "PNS", "Lainnya"], isRequired: true),
-            _buildTextField("No. Hp Ayah", "0812-3422-2100", isRequired: true),
-            _buildDropdown("Penghasilan Ayah", "Rp 6.000.000 - Rp 8.000.000", ["≤ Rp 1.000.000", "Rp 1.000.000 - Rp 3.000.000", "Rp 3.000.000 - Rp 6.000.000", "Rp 6.000.000 - Rp 8.000.000", "≥ Rp 8.000.000"], isRequired: true),
+            _buildTextField("Nama Ayah", mhs.namaAyah ?? "", isRequired: true),
+            _buildTextField("Pekerjaan Ayah", mhs.pekerjaanAyah ?? "", isRequired: true),
+            _buildTextField("No. Hp Ayah", mhs.noHpAyah ?? "", isRequired: true),
+            _buildTextField("Penghasilan Ayah", mhs.penghasilanAyah ?? "", isRequired: true),
 
             const SizedBox(height: 8),
 
             // Ibu
             _buildSectionHeader("Data Ibu"),
-            _buildTextField("Nama Ibu", "Fitriyani", isRequired: true),
-            _buildDropdown("Pekerjaan Ibu", "Ibu Rumah Tangga", ["Ibu Rumah Tangga", "Karyawan Swasta", "Wiraswasta", "Lainnya"], isRequired: true),
-            _buildTextField("No. Hp Ibu", "0813-2120-0908", isRequired: true),
-            _buildDropdown("Penghasilan Ibu", "≤ Rp 1.000.000", ["≤ Rp 1.000.000", "Rp 1.000.000 - Rp 3.000.000", "Rp 3.000.000 - Rp 6.000.000", "≥ Rp 6.000.000"], isRequired: true),
+            _buildTextField("Nama Ibu", mhs.namaIbu ?? "", isRequired: true),
+            _buildTextField("Pekerjaan Ibu", mhs.pekerjaanIbu ?? "", isRequired: true),
+            _buildTextField("No. Hp Ibu", mhs.noHpIbu ?? "", isRequired: true),
+            _buildTextField("Penghasilan Ibu", mhs.penghasilanIbu ?? "", isRequired: true),
 
             const SizedBox(height: 8),
 
             // Wali
             _buildSectionHeader("Data Wali"),
-            _buildTextField("Nama Wali", "", isRequired: false),
-            _buildDropdown("Pekerjaan Wali", "Pilih Pekerjaan Wali", ["Pilih Pekerjaan Wali", "Karyawan Swasta", "PNS", "Lainnya"], isRequired: false),
-            _buildTextField("No. Hp Wali", "", isRequired: false),
-            _buildDropdown("Penghasilan Wali", "Pilih Penghasilan Wali", ["Pilih Penghasilan Wali", "≤ Rp 1.000.000", "Rp 1.000.000 - Rp 3.000.000", "≥ Rp 3.000.000"], isRequired: false),
+            _buildTextField("Nama Wali", mhs.namaWali ?? "", isRequired: false),
+            _buildTextField("Pekerjaan Wali", mhs.pekerjaanWali ?? "", isRequired: false),
+            _buildTextField("No. Hp Wali", mhs.noHpWali ?? "", isRequired: false),
+            _buildTextField("Penghasilan Wali", mhs.penghasilanWali ?? "", isRequired: false),
           ],
         );
 
@@ -338,42 +333,15 @@ class _editmahasiswapage extends State<EditMahasiswaPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
              const Text(
-              "Sekolah", // Sesuai dengan gambar tab terakhir
+              "Sekolah", 
               style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
             ),
             const SizedBox(height: 16),
-            _buildDropdown("Jenis Sekolah", "SMA", ["SMA", "SMK", "MA"], isRequired: true),
-            _buildTextField("Sekolah", "30304271 - SMA Negeri 5 Banjarmasin", isRequired: true),
-            _buildTextField("Provinsi Sekolah", "Kalimantan Selatan", isRequired: true),
-            _buildTextField("Kota Sekolah", "Kota Banjarmasin", isRequired: true),
-            _buildTextField("Alamat Sekolah", "Jl. Sultan Adam No.76, Surgi Mufti", isRequired: true),
-            _buildTextField("No Ijazah Sekolah", "0000011", isRequired: true),
-            _buildTextField("NISN", "0078349391", isRequired: true),
-            
-            // File Ijazah Upload Field
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text("File Ijazah Terakhir", style: TextStyle(fontSize: 12, color: Color(0xFF475569))),
-                  const SizedBox(height: 8),
-                  OutlinedButton(
-                    onPressed: () {},
-                    style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-                      side: const BorderSide(color: Color(0xFFCBD5E1)),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-                      backgroundColor: Colors.white,
-                    ),
-                    child: const Text("Pilih File", style: TextStyle(color: Color(0xFF475569))),
-                  ),
-                ],
-              ),
-            ),
-          ],
-        );
-
+            _buildTextField("Jenis Sekolah", mhs.jenisSekolah ?? "", isRequired: true),
+            _buildTextField("Sekolah", mhs.namaSekolah ?? "", isRequired: true),
+            _buildTextField("Kota Sekolah", mhs.kotaSekolah ?? "", isRequired: true),
+            ]
+            );
       default:
         return const SizedBox();
     }
@@ -421,7 +389,11 @@ class _editmahasiswapage extends State<EditMahasiswaPage> {
     );
   }
 
+  // 🔥 Mengubah parameter menjadi data yang bisa langsung ditampilkan
   Widget _buildTextField(String label, String initialValue, {bool isRequired = false, IconData? suffixIcon}) {
+    // Agar form tidak menampilkan string "null" jika data kosong
+    final displayValue = initialValue == "null" || initialValue == "-" ? "" : initialValue;
+    
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Column(
@@ -435,7 +407,7 @@ class _editmahasiswapage extends State<EditMahasiswaPage> {
           ),
           const SizedBox(height: 6),
           TextFormField(
-            initialValue: initialValue,
+            initialValue: displayValue, // 🔥 Terisi dari API
             style: const TextStyle(fontSize: 14, color: Color(0xFF0F172A)),
             decoration: InputDecoration(
               filled: true,
@@ -461,100 +433,64 @@ class _editmahasiswapage extends State<EditMahasiswaPage> {
     );
   }
 
+  // CATATAN: Untuk kemudahan karena value dropdown harus persis dengan isi array 'options',
+  // saat ini saya ubah _buildDropdown menjadi _buildTextField agar data dari API (yang string bebas)
+  // bisa langsung masuk tanpa menyebabkan error render.
+  
+  /*
   Widget _buildDropdown(String label, String? selectedValue, List<String> options, {bool isRequired = false}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF475569))),
-              if (isRequired) const Text(" *", style: TextStyle(fontSize: 12, color: Colors.red)),
-            ],
-          ),
-          const SizedBox(height: 6),
-          DropdownButtonFormField<String>(
-            value: selectedValue,
-            icon: const Icon(Icons.keyboard_arrow_down, color: Colors.grey),
-            style: const TextStyle(fontSize: 14, color: Color(0xFF0F172A)),
-            decoration: InputDecoration(
-              filled: true,
-              fillColor: Colors.white,
-              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
-              ),
-              enabledBorder: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-                borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
-              ),
-            ),
-            items: options.map((String value) {
-              return DropdownMenuItem<String>(
-                value: value,
-                child: Text(value),
-              );
-            }).toList(),
-            onChanged: (newValue) {},
-          ),
-        ],
-      ),
-    );
+    return Padding(...);
   }
+  */
 
   Widget _buildActionButtons() {
     return Row(
       children: [
         Expanded(
           child: OutlinedButton(
-      onPressed: () {
-        Navigator.pop(context); // 🔥 biar bisa kembali
-      },
-      style: OutlinedButton.styleFrom(
-        side: const BorderSide(color: Color(0xFFD1D5DB)),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(10),
-        ),
-      ),
-      child: const Text(
-        "Batal",
-        style: TextStyle(
-          color: Color(0xFF334155),
-          fontWeight: FontWeight.w600,
-        ),
-      ),
-    ),
-  ),
-
-
- const SizedBox(width: 16),
-
-    // 🔹 BUTTON SIMPAN
-    Expanded(
-      child: ElevatedButton(
-        onPressed: () {
-          // aksi simpan
-        },
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF0D47A1),
-          padding: const EdgeInsets.symmetric(vertical: 14),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-          elevation: 0,
-        ),
-        child: const Text(
-          "Simpan Perubahan",
-          style: TextStyle(
-            color: Colors.white,
-            fontWeight: FontWeight.w600,
+            onPressed: () {
+              Navigator.pop(context); // Batal dan kembali
+            },
+            style: OutlinedButton.styleFrom(
+              side: const BorderSide(color: Color(0xFFD1D5DB)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            child: const Text(
+              "Batal",
+              style: TextStyle(
+                color: Color(0xFF334155),
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ),
-      ),
-    ),
-  ],
-);
+        const SizedBox(width: 16),
+        // 🔹 BUTTON SIMPAN
+        Expanded(
+          child: ElevatedButton(
+            onPressed: () {
+              // aksi simpan update
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0D47A1),
+              padding: const EdgeInsets.symmetric(vertical: 14),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              elevation: 0,
+            ),
+            child: const Text(
+              "Simpan Perubahan",
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
   }
 }

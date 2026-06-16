@@ -80,7 +80,7 @@ class _DashboardMahasiswaPageState extends State<DashboardMahasiswaPage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text("Ghina Dwi Putri Dahliana", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700)),
+                        const Text("Aufa Qonita Salsabila", style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w700)),
                         const SizedBox(height: 6),
                         Text("Mahasiswa - ${student.prodi}", style: const TextStyle(color: Colors.white70, fontSize: 12)),
                         // --- TAMBAHKAN KODE INI ---

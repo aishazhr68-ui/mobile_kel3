@@ -16,23 +16,27 @@ class MahasiswaService {
   }
 
   // ==========================================
-  // 1. GET DAFTAR MAHASISWA
+  // 1. GET DAFTAR MAHASISWA (DENGAN PAGINATION)
   // ==========================================
-  Future<List<MahasiswaModel>> getMahasiswa() async {
+  // 🔥 Menambahkan parameter [page] dengan default 1
+  Future<List<MahasiswaModel>> getMahasiswa({int page = 1}) async {
     final headers = await _getHeaders();
-    final response = await http.get(Uri.parse(ApiConfig.mahasiswa), headers: headers);
+    
+    // 🔥 Menggabungkan URL dengan parameter page (contoh: .../mahasiswa?page=1)
+    final url = "${ApiConfig.mahasiswa}?page=$page";
+    final response = await http.get(Uri.parse(url), headers: headers);
 
     if (response.statusCode == 200) {
       final decoded = jsonDecode(response.body);
       
       List<dynamic> dataList = [];
       
-      // 🔥 Logika pembongkaran data yang terbukti berhasil di kode Anda sebelumnya
+      // Mengambil data dari struktur paginasi Laravel
       if (decoded['data'] != null) {
-        if (decoded['data'] is List) {
-          dataList = decoded['data'];
-        } else if (decoded['data'] is Map && decoded['data']['data'] != null) {
+        if (decoded['data'] is Map && decoded['data']['data'] != null) {
           dataList = decoded['data']['data'];
+        } else if (decoded['data'] is List) {
+          dataList = decoded['data'];
         }
       } else if (decoded is List) {
         dataList = decoded;
@@ -48,7 +52,7 @@ class MahasiswaService {
   }
 
   // ==========================================
-  // 2. HAPUS MAHASISWA
+  // 2. HAPUS MAHASISWA (TIDAK BERUBAH)
   // ==========================================
   Future<void> deleteMahasiswa(String nim) async {
     final headers = await _getHeaders();
@@ -60,7 +64,7 @@ class MahasiswaService {
   }
 
   // ==========================================
-  // 3. DETAIL MAHASISWA
+  // 3. DETAIL MAHASISWA (TIDAK BERUBAH)
   // ==========================================
   Future<MahasiswaModel> getDetailMahasiswa(String nim) async {
     final headers = await _getHeaders();

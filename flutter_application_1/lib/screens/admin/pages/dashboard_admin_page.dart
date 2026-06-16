@@ -81,7 +81,7 @@ class _DashboardAdminPageState extends State<DashboardAdminPage> {
       extendBody: true, 
       floatingActionButton: const CustomFAB(), 
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: const CustomBottomNavBar(), 
+      bottomNavigationBar: const CustomBottomNavBar(selectedIndex: 0),
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20),
