@@ -1,55 +1,39 @@
-import 'package:flutter_application_1/models/admin/jadwal_detail_model.dart'; // Sesuaikan path
+import 'dart:convert';
+import 'package:flutter/material.dart'; // Penting untuk debugPrint
+import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_application_1/config/api_config.dart';
+import 'package:flutter_application_1/models/admin/jadwal_detail_model.dart';
 
 class JadwalDetailService {
-  Future<List<JadwalMataKuliah>> getJadwalDetail(String namaKelas) async {
-    // Simulasi loading dari server
-    await Future.delayed(const Duration(seconds: 1));
+ Future<List<JadwalMataKuliah>> getJadwalDetail(String namaKelas) async {
+  final prefs = await SharedPreferences.getInstance();
+  final token = prefs.getString('token');
 
-    // Dummy data sesuai gambar
-    return [
-      JadwalMataKuliah(
-        namaMataKuliah: "Pemrograman Perangkat Bergerak",
-        sks: 3,
-        waktu: "14.20 - 19.30",
-        ruang: "BENGKEL RPL",
-        namaDosen: "Arifin Noor A, S. ST., M. T.",
-      ),
-      JadwalMataKuliah(
-        namaMataKuliah: "Administrasi Database",
-        sks: 3,
-        waktu: "13.30 - 17.55",
-        ruang: "L. HWK II",
-        namaDosen: "Rahimi Fitri, S.Kom, M.Kom",
-      ),
-      JadwalMataKuliah(
-        namaMataKuliah: "Metode Numerik",
-        sks: 2,
-        waktu: "08.00 - 10.30",
-        ruang: "R. KULIAH 2",
-        namaDosen: "Nitami L., P., S. Kom. M, Kom.",
-      ),
-      JadwalMataKuliah(
-        namaMataKuliah: "Keamanan Jaringan",
-        sks: 3,
-        waktu: "08.00 - 12.10",
-        ruang: "L. JARINGAN",
-        namaDosen: "Dr. Kun N. P. P., S. T., M.Kom.",
-      ),
-      JadwalMataKuliah(
-        namaMataKuliah: "Pemrograman Web",
-        sks: 3,
-        waktu: "08.00 - 12.10",
-        ruang: "L. RPL",
-        namaDosen: "Agus S. B. N., S. T., M. Kom.",
-      ),
-      // Data tambahan agar tombol "Lainnya" muncul
-      JadwalMataKuliah(
-        namaMataKuliah: "Kecerdasan Buatan",
-        sks: 3,
-        waktu: "13.30 - 16.00",
-        ruang: "L. RPL",
-        namaDosen: "Yennie Indrasary",
-      ),
-    ];
+  // Ganti parameter sesuai kebutuhan API Anda (cek apakah perlu id_kelas atau nama_kelas)
+  // Jika API Anda mengharapkan ID, pastikan Anda mengirim ID, bukan nama.
+  final url = Uri.parse("${ApiConfig.kelasMk}?nama_kelas=$namaKelas");
+  
+  debugPrint("Memanggil URL: $url");
+
+  final response = await http.get(
+    url,
+    headers: {
+      'Accept': 'application/json',
+      'Authorization': 'Bearer $token',
+    },
+  );
+
+  debugPrint("Response Body: ${response.body}");
+
+  if (response.statusCode == 200) {
+    final decoded = jsonDecode(response.body);
+    
+    // Cek apakah data dibungkus dalam key 'data'
+    List<dynamic> data = decoded['data'] ?? [];
+    return data.map((json) => JadwalMataKuliah.fromJson(json)).toList();
+  } else {
+    throw Exception("Gagal mengambil data. Status: ${response.statusCode}");
   }
+}
 }

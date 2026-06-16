@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
-import 'package:shared_preferences/shared_preferences.dart'; // Tambahan untuk simpan sesi/token
+import 'package:shared_preferences/shared_preferences.dart';
 import '../admin/pages/dashboard_admin_page.dart';
 import 'package:flutter_application_1/services/auth/auth_service.dart';
 import 'package:flutter_application_1/screens/mahasiswa/dashboard_mahasiswa_page.dart';
@@ -25,14 +25,12 @@ class _LoginPageState extends State<LoginPage> {
 
   final AuthService authService = AuthService();
 
-  // Memanggil fungsi load data saat halaman pertama kali dibuka
   @override
   void initState() {
     super.initState();
     _loadSavedCredentials(); 
   }
 
-  // Fungsi untuk mengambil email dan password yang tersimpan jika user sebelumnya mencentang "Ingat saya"
   Future<void> _loadSavedCredentials() async {
     final prefs = await SharedPreferences.getInstance();
     final savedEmail = prefs.getString('saved_email');
@@ -59,12 +57,16 @@ class _LoginPageState extends State<LoginPage> {
         passwordController.text.trim(),
       );
 
-      // SIMPAN TOKEN KE DALAM PERANGKAT (SHARED PREFERENCES)
+      // 🔥 FILTER KEAMANAN: Pastikan token benar-benar ada
+      if (user.token.isEmpty || user.token == "null") {
+        throw Exception("Email atau password salah.");
+      }
+
+      // SIMPAN Sesi
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('token', user.token);
       await prefs.setString('role', user.role);
 
-      // LOGIKA "INGAT SAYA"
       if (rememberMe) {
         await prefs.setString('saved_email', emailController.text.trim());
         await prefs.setString('saved_password', passwordController.text.trim());
@@ -76,25 +78,25 @@ class _LoginPageState extends State<LoginPage> {
       }
 
       if (!mounted) return;
+      debugPrint(user.role);
 
-      if (user.role == "admin_mahasiswa") {
+      if(user.role == "admin_mahasiswa"){
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(
-            builder: (_) => const DashboardAdminPage(),
-          ),
+          MaterialPageRoute(builder: (_) => const DashboardAdminPage()),
         );
-      } else if (user.role == "mahasiswa") {
+
+      }else if (user.role == "mahasiswa") {
+        // Jika rolenya mahasiswa
         Navigator.pushReplacement(
           context,
-          MaterialPageRoute(
-            builder: (_) => const DashboardMahasiswaPage(),
-          ),
+          MaterialPageRoute(builder: (_) => const DashboardMahasiswaPage()),
         );
       } else {
+        // Jika role benar-benar aneh/tidak terdaftar
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
-            content: Text("Role '${user.role}' tidak dikenali"),
+            content: Text("Role '${user.role}' tidak dikenali sistem"),
             backgroundColor: Colors.red,
           ),
         );
@@ -110,9 +112,7 @@ class _LoginPageState extends State<LoginPage> {
       );
     } finally {
       if (mounted) {
-        setState(() {
-          isLoading = false;
-        });
+        setState(() => isLoading = false);
       }
     }
   }
@@ -162,7 +162,7 @@ class _LoginPageState extends State<LoginPage> {
                         ),
                       ),
                       const Text(
-                        "ADMIN PORTAL",
+                        "SISTEM INFORMASI TERPADU", // 🔥 Ubah title agar lebih umum
                         style: TextStyle(color: Colors.white70),
                       ),
                       const SizedBox(height: 5),
@@ -202,12 +202,6 @@ class _LoginPageState extends State<LoginPage> {
                               spreadRadius: 3,
                               offset: const Offset(0, 12),
                             ),
-                            BoxShadow(
-                              color: Colors.black.withOpacity(0.15),
-                              blurRadius: 10,
-                              spreadRadius: 1,
-                              offset: const Offset(0, 5),
-                            ),
                           ],
                         ),
                         child: ClipRRect(
@@ -245,50 +239,29 @@ class _LoginPageState extends State<LoginPage> {
                                   child: ClipRRect(
                                     borderRadius: BorderRadius.circular(14),
                                     child: BackdropFilter(
-                                      filter: ImageFilter.blur(
-                                          sigmaX: 1, sigmaY: 1),
+                                      filter: ImageFilter.blur(sigmaX: 1, sigmaY: 1),
                                       child: Container(
-                                        padding: const EdgeInsets.symmetric(
-                                          horizontal: 12,
-                                          vertical: 7,
-                                        ),
+                                        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
                                         decoration: BoxDecoration(
                                           color: Colors.white.withOpacity(0.08),
-                                          borderRadius:
-                                              BorderRadius.circular(14),
-                                          border: Border.all(
-                                            color: Colors.white
-                                                .withOpacity(0.25),
-                                          ),
+                                          borderRadius: BorderRadius.circular(14),
+                                          border: Border.all(color: Colors.white.withOpacity(0.25)),
                                         ),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
                                           children: [
-                                            const Icon(
-                                              Icons.location_on,
-                                              color: Colors.white,
-                                              size: 15,
-                                            ),
+                                            const Icon(Icons.location_on, color: Colors.white, size: 15),
                                             const SizedBox(width: 6),
                                             Column(
-                                              crossAxisAlignment:
-                                                  CrossAxisAlignment.start,
+                                              crossAxisAlignment: CrossAxisAlignment.start,
                                               children: const [
                                                 Text(
                                                   "Politeknik Negeri Banjarmasin",
-                                                  style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontSize: 11,
-                                                    fontWeight:
-                                                        FontWeight.w600,
-                                                  ),
+                                                  style: TextStyle(color: Colors.white, fontSize: 11, fontWeight: FontWeight.w600),
                                                 ),
                                                 Text(
                                                   "Excellence in Technical Education",
-                                                  style: TextStyle(
-                                                    color: Colors.white70,
-                                                    fontSize: 9,
-                                                  ),
+                                                  style: TextStyle(color: Colors.white70, fontSize: 9),
                                                 ),
                                               ],
                                             ),
@@ -313,20 +286,15 @@ class _LoginPageState extends State<LoginPage> {
                   padding: const EdgeInsets.all(24),
                   decoration: const BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.vertical(
-                      top: Radius.circular(30),
-                    ),
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
                   ),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Center(
                         child: Text(
-                          "Login Admin",
-                          style: TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          "Login Sistem", // 🔥 Ubah teks agar mewakili admin & mhs
+                          style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                         ),
                       ),
                       const SizedBox(height: 6),
@@ -356,11 +324,11 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                       const SizedBox(height: 15),
 
-                      const Text("Password", style: TextStyle(fontWeight: FontWeight.w500)),
+                     const Text("Password", style: TextStyle(fontWeight: FontWeight.w500)),
                       const SizedBox(height: 8),
                       TextField(
                         controller: passwordController,
-                        obscureText: isObscure, // Menggunakan variabel boolean
+                        obscureText: isObscure, 
                         decoration: InputDecoration(
                           prefixIcon: const Icon(Icons.lock_outline),
                           hintText: "********",
@@ -370,7 +338,6 @@ class _LoginPageState extends State<LoginPage> {
                             borderRadius: BorderRadius.circular(12),
                             borderSide: BorderSide.none,
                           ),
-                          // ICON MATA
                           suffixIcon: IconButton(
                             icon: Icon(
                               isObscure ? Icons.visibility_off : Icons.visibility,
@@ -378,42 +345,17 @@ class _LoginPageState extends State<LoginPage> {
                             ),
                             onPressed: () {
                               setState(() {
-                                isObscure = !isObscure; // Toggle nilai boolean
+                                isObscure = !isObscure; 
                               });
                             },
                           ),
                         ),
                       ),
-                      const SizedBox(height: 15),
+                      
+                      // Beri jarak agak jauh sedikit antara input password dan tombol Login
+                      const SizedBox(height: 30),
 
-                     Row(
-  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-  children: [
-    Expanded(
-      child: Row(
-        children: [
-          Checkbox(
-            value: rememberMe,
-            onChanged: (val) => setState(() => rememberMe = val!),
-          ),
-          const Flexible(
-            child: Text("Ingat saya"),
-          ),
-        ],
-      ),
-    ),
-    TextButton(
-      onPressed: () {},
-      style: TextButton.styleFrom(
-        foregroundColor: const Color(0xFF2563EB), // Warna teks untuk tombol
-      ),
-      child: const Text("Lupa password?"),
-    ),
-  ],
-),
-                      const SizedBox(height: 20),
-
-                      // BUTTON
+                      // ================= BUTTON LOGIN =================
                       SizedBox(
                         width: double.infinity,
                         height: 50,
@@ -452,11 +394,7 @@ class _LoginPageState extends State<LoginPage> {
                         child: Text(
                           "© 2026 Politeknik Negeri Banjarmasin.\nSistem Informasi Akademik Terpadu.",
                           textAlign: TextAlign.center,
-                          style: TextStyle(
-                            color: Colors.grey,
-                            fontSize: 12,
-                            height: 1.4,
-                          ),
+                          style: TextStyle(color: Colors.grey, fontSize: 12, height: 1.4),
                         ),
                       ),
                       const SizedBox(height: 20),

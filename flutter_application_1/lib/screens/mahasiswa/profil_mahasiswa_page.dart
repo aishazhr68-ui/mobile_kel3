@@ -1,7 +1,11 @@
 // Lokasi: lib/screens/pages/profil/profil_mahasiswa_page.dart
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'pengaturan_akun_mahasiswa_page.dart';
 import 'package:flutter_application_1/widgets/mahasiswa/custom_bottom_navmahasiswa.dart';
+import 'package:flutter_application_1/screens/auth/login_page.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_application_1/config/api_config.dart';
 
 class ProfilMahasiswaPage extends StatelessWidget {
   const ProfilMahasiswaPage({super.key});
@@ -55,11 +59,44 @@ class ProfilMahasiswaPage extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 12),
-                    Expanded(
+                  Expanded(
                       child: ElevatedButton(
-                        onPressed: () {
-                          // Logika navigasi keluar ke login ditaruh di sini
-                          Navigator.pop(context); 
+                        // 🔥 PERBAIKAN: Ubah menjadi async
+                        onPressed: () async {
+                          // 1. Tampilkan indikator loading (opsional) atau langsung proses
+                          final prefs = await SharedPreferences.getInstance();
+                          final token = prefs.getString('token');
+
+                          // 2. Tembak API Logout untuk mematikan token di server Backend
+                          if (token != null) {
+                            try {
+                              await http.post(
+                                Uri.parse(ApiConfig.logoutMahasiswa),
+                                headers: {
+                                  'Content-Type': 'application/json',
+                                  'Accept': 'application/json',
+                                  'Authorization': 'Bearer $token',
+                                },
+                              );
+                            } catch (e) {
+                              debugPrint("Gagal logout API: $e");
+                              // Tetap lanjutkan proses hapus lokal meski API gagal (misal karena tidak ada internet)
+                            }
+                          }
+
+                          // 3. Hapus sesi lokal di aplikasi
+                          await prefs.remove('token');
+                          await prefs.remove('role');
+
+                          // 4. Pastikan context masih aktif sebelum pindah halaman
+                          if (!context.mounted) return;
+
+                          // 5. Pindah ke halaman Login dan HAPUS semua history halaman (stack)
+                          Navigator.pushAndRemoveUntil(
+                            context,
+                            MaterialPageRoute(builder: (context) => const LoginPage()),
+                            (route) => false, // false berarti hapus semua tumpukan layar sebelumnya
+                          );
                         },
                         style: ElevatedButton.styleFrom(
                           backgroundColor: const Color(0xFFEF4444),
@@ -69,8 +106,7 @@ class ProfilMahasiswaPage extends StatelessWidget {
                         ),
                         child: const Text("Ya, Keluar", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
                       ),
-                    ),
-                  ],
+                    ),               ],
                 )
               ],
             ),

@@ -1,33 +1,53 @@
 class ApiConfig {
+  // Base URL Admin (Port 9002)
+  static const String baseUrl = "https://api-admin-4c.rifkiaja.my.id:9002/api";
+  
+  // Base URL Mahasiswa (Port 9003) - PASTI PAKAI INI
+  static const String baseUrlMahasiswa = "https://api-mahasiswa-4c.rifkiaja.my.id:9003/api";
 
-    static const String baseUrl = "https://api-admin-4c.rifkiaja.my.id:9002/api";
-    static const String baseUrlKeuangan = "https://keuangan4c06.vps-poliban.my.id/api";
-
+  static const String baseUrlKeuangan = "https://keuangan4c06.vps-poliban.my.id/api";
 
   // =======================================
-  // 1. AUTHENTICATION
+  // 1. DASHBOARD ADMIN
   // =======================================
+  // 🔥 PERBAIKAN: Diarahkan ke baseUrlMahasiswa (Port 9003) sesuai perintah curl Anda
+  static const String dashboardAdminMobile = '$baseUrlMahasiswa/mobile/admin/dashboard';
+  static const String dashboardAdminWeb = '$baseUrlMahasiswa/web/admin/dashboard'; // Tambahan untuk jaga-jaga
+  
+  // =======================================
+  // AUTHENTICATION
+  // =======================================
+  
+// 🔥 TAMBAHKAN INI KEMBALI UNTUK ADMIN (Akses Port 9002)
   static const String login = '$baseUrl/auth/login';
   static const String logout = '$baseUrl/auth/logout';
   static const String refresh = '$baseUrl/auth/refresh';
-
+  
+  // Mahasiswa (Akses Port 9003)
+  static const String loginMahasiswa = '$baseUrlMahasiswa/auth/login';
+  static const String refreshMahasiswa = '$baseUrlMahasiswa/auth/refresh';
+  static const String logoutMahasiswa = '$baseUrlMahasiswa/auth/logout';
   // =======================================
   // 2. PROFILE
   // =======================================
-  static const String getProfile = '$baseUrl/profile';
-  static const String updateProfile = '$baseUrl/profile';
-  static const String changePassword = '$baseUrl/profile/change-password';
+  static const String pengaturan = '$baseUrlMahasiswa/web/pengaturan';
+  //static const String getProfile = '$baseUrl/profile';
+  //static const String updateProfile = '$baseUrl/profile';
+  //static const String changePassword = '$baseUrl/profile/change-password';
 
   // =======================================
   // 3. MAHASISWA & USER MANAGEMENT (Admin)
   // =======================================
-  static const String mahasiswa = '$baseUrl/mahasiswa'; 
-  static String detailMahasiswa(String nim) => '$baseUrl/mahasiswa/$nim';
-  static String updateMahasiswa(String nim) => '$baseUrl/mahasiswa/$nim';
-  static String deleteMahasiswa(String nim) => '$baseUrl/mahasiswa/$nim';
-  static String searchMahasiswaByNama(String nama) => '$baseUrl/mahasiswa/search/$nama';
-  static String filterMahasiswaByStatusId(String idStatus) => '$baseUrl/mahasiswa/status/$idStatus';
+  static const String mahasiswa = '$baseUrlMahasiswa/web/mahasiswa'; 
+  static String detailMahasiswa(String nim) => '$baseUrlMahasiswa/web/mahasiswa/$nim';
+  static String updateMahasiswa(String nim) => '$baseUrlMahasiswa/web/mahasiswa/$nim';
+  static String deleteMahasiswa(String nim) => '$baseUrlMahasiswa/web/mahasiswa/$nim';
   
+  // Fitur Filter / Pencarian Mahasiswa
+  static String searchMahasiswaByNama(String nama) => '$baseUrlMahasiswa/web/mahasiswa/search/$nama';
+  static String filterMahasiswaByStatusId(String idStatus) => '$baseUrlMahasiswa/web/mahasiswa/status/$idStatus';
+  static String filterMahasiswaByJK(String idJk) => '$baseUrlMahasiswa/web/mahasiswa/jenis-kelamin/$idJk';
+  static String filterMahasiswaByUkt(String idUkt) => '$baseUrlMahasiswa/service/mahasiswa/ukt/$idUkt';
   
   // Admin Mahasiswa: Mengaktifkan kembali atau memblokir akun mahasiswa (Suspend Account)
   static String updateStatusAktifMhs(String nim) => '$baseUrl/mahasiswa/$nim/update-status';
@@ -61,7 +81,6 @@ class ApiConfig {
   static String detailKrs(int idKrs) => '$krs/$idKrs';
   // Alternatif Layar ke-3 (Jika backend menggunakan parameter NIM dan Periode/Semester)
   static String detailKrsByNim(String nim, String periode) => '$krs/detail?nim=$nim&periode=$periode';
-  
   
   // Mahasiswa: Menyimpan daftar matakuliah pilihan ke dalam database saat pengisian KRS
   static const String simpanKrsMahasiswa = '$krs/store';
@@ -108,8 +127,16 @@ class ApiConfig {
   static const String hari = '$baseUrl/data-master/hari';
   static const String ruang = '$baseUrl/data-master/ruang';
   static const String jurusan = '$baseUrl/data-master/jurusan';
-  static const String jenisKelamin = '$baseUrl/jenis-kelamin';
-  static const String statusMhs = '$baseUrl/status-mhs';
+  
+  // 🔥 PERBAIKAN: Endpoint referensi menggunakan port 9003 (baseUrlMahasiswa)
+  static const String jenisKelamin = '$baseUrlMahasiswa/web/jenis-kelamin';
+  static String detailJenisKelamin(String id) => '$baseUrlMahasiswa/web/jenis-kelamin/$id';
+  
+  static const String jenisSekolah = '$baseUrlMahasiswa/service/jenis-sekolah';
+  static String detailJenisSekolah(String id) => '$baseUrlMahasiswa/service/jenis-sekolah/$id';
+
+  static const String statusMhs = '$baseUrlMahasiswa/service/status-mhs';
+  static String detailStatusMhs(String id) => '$baseUrlMahasiswa/service/status-mhs/$id';
 
   // =======================================
   // 6. ROLE MAHASISWA (Akses Khusus Mahasiswa)
@@ -122,7 +149,6 @@ class ApiConfig {
   static String getRekapAbsensi(String idKelas, String idMk, String kodePertemuan) => 
       '$baseUrl/absensi/rekap?id_kelas=$idKelas&id_mk=$idMk&kode_pertemuan=$kodePertemuan';
       
-  
   // Mahasiswa: Cek status apakah sesi absen sudah dibuka oleh dosen atau belum
   static String cekStatusSesiMhs(String idKelasMk, String pertemuanKe) => 
       '$baseUrl/akademik/presensi-mahasiswa/status?id_kelas_mk=$idKelasMk&pertemuan_ke=$pertemuanKe';
@@ -141,25 +167,22 @@ class ApiConfig {
       '$baseUrl/mahasiswa/nilai/detail?id_mk=$idMk';
 
   // =======================================
-  // 6. KEUANGAN
+  // 7. KEUANGAN
   // =======================================
-static const String uktKategori = '$baseUrl/Keuangan/ukt-kategori';
+  static const String uktKategori = '$baseUrl/Keuangan/ukt-kategori';
   
-  //  Detail kategori UKT berdasarkan ID (Dari cURL /ukt-kategori/1 Anda)
+  // Detail kategori UKT berdasarkan ID
   static String detailUktKategori(int id) => '$baseUrlKeuangan/ukt-kategori/$id';
 
-  //  Master Data Status Keuangan Mahasiswa
+  // Master Data Status Keuangan Mahasiswa
   static const String statusMahasiswaKeuangan = '$baseUrl/Keuangan/status-mahasiswa';
 
-  // Menampilkan tagihan aktif di Tab "Belum Dibayar" (Dari cURL /api/tagihan Anda)
+  // Menampilkan tagihan aktif di Tab "Belum Dibayar"
   static const String getTagihanMahasiswa = '$baseUrlKeuangan/tagihan';
 
-  // Detail Informasi 1 Tagihan Berdasarkan ID (Dari cURL /tagihan/1 Anda)
-  // Digunakan untuk menampilkan pop-up konfirmasi pembayaran
+  // Detail Informasi 1 Tagihan Berdasarkan ID
   static String detailTagihanMahasiswa(int idTagihan) => '$baseUrlKeuangan/tagihan/$idTagihan';
 
-//Master Data List Status Tagihan (Dari cURL /status-tagihan Anda)
+  // Master Data List Status Tagihan
   static const String statusTagihan = '$baseUrlKeuangan/status-tagihan';
-
-
 }

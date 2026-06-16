@@ -128,8 +128,11 @@ class _DetailMahasiswaPageState extends State<DetailMahasiswaPage> {
                             width: 2,
                           ),
                         ),
-                        child: const Icon(Icons.person,
-                            color: Color(0xFF2563EB), size: 30),
+                        child: const Icon(
+                          Icons.person,
+                          color: Color(0xFF2563EB), 
+                          size: 30,
+                        ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
@@ -139,24 +142,23 @@ class _DetailMahasiswaPageState extends State<DetailMahasiswaPage> {
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
                               children: [
-                                const Text(
-                                  "Andi Pratama",
-                                  style: TextStyle(
-                                    fontWeight: FontWeight.w700,
-                                    fontSize: 18,
-                                  ),
+                                Text(
+                                  mhs.nama, 
+                                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 18),
                                 ),
+                                // Container Status Dinamis
                                 Container(
-                                  padding: const EdgeInsets.symmetric(
-                                      horizontal: 10, vertical: 4),
+                                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                                   decoration: BoxDecoration(
-                                    color: const Color(0xFFD1FAE5),
+                                    // Pengecekan warna background langsung di dalam widget
+                                    color: mhs.status == "AKTIF" ? const Color(0xFFD1FAE5) : const Color(0xFFFEE2E2),
                                     borderRadius: BorderRadius.circular(20),
                                   ),
-                                  child: const Text(
-                                    "AKTIF",
+                                  child: Text(
+                                    mhs.status.toUpperCase(),
                                     style: TextStyle(
-                                      color: Color(0xFF16A34A),
+                                      // Pengecekan warna teks langsung di dalam widget
+                                      color: mhs.status == "AKTIF" ? const Color(0xFF16A34A) : Colors.red,
                                       fontSize: 11,
                                       fontWeight: FontWeight.w600,
                                     ),
@@ -165,10 +167,7 @@ class _DetailMahasiswaPageState extends State<DetailMahasiswaPage> {
                               ],
                             ),
                             const SizedBox(height: 4),
-                            const Text(
-                              "NIM: A020325112",
-                              style: TextStyle(color: Colors.grey),
-                            ),
+                            Text("NIM: ${mhs.nim}", style: const TextStyle(color: Colors.grey)),
                           ],
                         ),
                       ),
@@ -300,6 +299,13 @@ Widget _buildTabContent() {
               "≤ Rp1.000.000",
             ),
             _parentCard(
+              "NAMA WALI",
+              "-",
+              "-",
+              "-",
+              "-",
+            ),
+       _parentCard(
               "NAMA WALI",
               "-",
               "-",

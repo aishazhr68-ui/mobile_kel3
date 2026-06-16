@@ -11,10 +11,11 @@ dependencies:
   flutter:
     sdk: flutter
 
+  # Library untuk pengelompokan data (perlu untuk groupBy)
+  collection: ^1.17.0 
+
   image_picker: ^1.1.2
-
   http: ^1.2.1
-
   cupertino_icons: ^1.0.8
   
   # Tambahan untuk fitur simpan sesi login dan "Ingat saya"
@@ -23,7 +24,6 @@ dependencies:
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
   flutter_lints: ^6.0.0
 
 flutter:
