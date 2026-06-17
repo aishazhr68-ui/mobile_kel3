@@ -28,7 +28,7 @@ class PresensiService {
         final List<dynamic> dataList = responseData['data'] ?? [];
         return dataList.map((json) => KelasPresensiModel(
           id: json['id_kelas']?.toString() ?? "-",
-          kelas: json['nama_kelas'] ?? "-",
+          kelas: json['kelas_nama'] ?? "-",
         )).toList();
       } else {
         throw Exception("Gagal memuat daftar kelas");
@@ -74,8 +74,8 @@ class PresensiService {
     if (token == null) throw Exception("Sesi telah habis.");
 
     try {
-      // Pastikan Endpoint sesuai dengan API Anda
-      final String url = '${ApiConfig.presensi}/rekap-mahasiswa?id_mk=$idMk';
+      // Menggunakan endpoint roster karena rekap-mahasiswa tidak ada di backend
+      final String url = '${ApiConfig.presensi}/roster?id_kelas_mk=$idMk&pertemuan_ke=1';
 
       final response = await http.get(
         Uri.parse(url),

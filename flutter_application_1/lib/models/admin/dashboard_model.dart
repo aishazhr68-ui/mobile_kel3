@@ -51,15 +51,26 @@ class JadwalDashboard {
     required this.hariTanggal,
   });
 
- factory JadwalDashboard.fromJson(Map<String, dynamic> json) {
-  return JadwalDashboard(
-    // Kita cek apakah data ada di level atas atau di dalam objek lain
-    namaMk: json['nama_mk']?.toString() ?? json['mata_kuliah']?['nama_mk']?.toString() ?? "Matakuliah Tidak Diketahui",
-    namaKelas: json['nama_kelas']?.toString() ?? json['kelas']?['nama_kelas']?.toString() ?? "-",
-    ruang: json['ruang']?.toString() ?? json['nama_ruang']?.toString() ?? "-",
-    jamMulai: json['jam_mulai']?.toString() ?? "00:00",
-    jamSelesai: json['jam_selesai']?.toString() ?? "00:00",
-    hariTanggal: json['hari']?.toString() ?? "Hari ini",
-  );
-}
+  factory JadwalDashboard.fromJson(Map<String, dynamic> json) {
+    String getRelasi(dynamic field, String key) {
+      if (field is Map) return field[key]?.toString() ?? "-";
+      return field?.toString() ?? "-";
+    }
+
+    return JadwalDashboard(
+      namaMk: json['nama_mk']?.toString() ?? 
+              (json['mata_kuliah'] != null ? getRelasi(json['mata_kuliah'], 'nama_mk') : null) ?? 
+              "Matakuliah Tidak Diketahui",
+      namaKelas: json['nama_kelas']?.toString() ?? 
+                 (json['kelas'] != null ? getRelasi(json['kelas'], 'nama_kelas') : null) ?? 
+                 "-",
+      ruang: json['ruang']?.toString() ?? 
+             json['nama_ruang']?.toString() ?? 
+             (json['ruangan'] != null ? getRelasi(json['ruangan'], 'nama_ruang') : null) ?? 
+             "-",
+      jamMulai: json['jam_mulai']?.toString() ?? "00:00",
+      jamSelesai: json['jam_selesai']?.toString() ?? "00:00",
+      hariTanggal: json['hari'] != null ? getRelasi(json['hari'], 'nama_hari') : "Hari ini",
+    );
+  }
 }

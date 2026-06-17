@@ -5,8 +5,9 @@ import 'package:flutter_application_1/services/admin/jadwal_detail_service.dart'
 import 'package:collection/collection.dart'; 
 
 class JadwalDetailPage extends StatefulWidget {
+  final String idKelas;
   final String namaKelas;
-  const JadwalDetailPage({super.key, required this.namaKelas});
+  const JadwalDetailPage({super.key, required this.idKelas, required this.namaKelas});
 
   @override
   State<JadwalDetailPage> createState() => _JadwalDetailPageState();
@@ -26,7 +27,7 @@ class _JadwalDetailPageState extends State<JadwalDetailPage> {
 
   Future<void> _loadData() async {
     try {
-      final data = await _service.getJadwalDetail(widget.namaKelas);
+      final data = await _service.getJadwalDetail(widget.idKelas);
       
       // 2. Lakukan grouping
       final grouped = groupBy(data, (JadwalMataKuliah m) => m.hari ?? "Tidak Diketahui");

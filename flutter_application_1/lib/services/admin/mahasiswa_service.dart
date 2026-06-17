@@ -81,4 +81,48 @@ class MahasiswaService {
       throw Exception("Gagal memuat detail (Status: ${response.statusCode})");
     }
   }
+
+  // ==========================================
+  // 4. TAMBAH MAHASISWA
+  // ==========================================
+  Future<void> addMahasiswa(Map<String, dynamic> body) async {
+    final headers = await _getHeaders();
+    headers['Content-Type'] = 'application/json';
+    
+    final response = await http.post(
+      Uri.parse(ApiConfig.mahasiswa),
+      headers: headers,
+      body: jsonEncode(body),
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 201) {
+      if (response.body.trim().startsWith('<')) {
+        throw Exception("Server mengalami error (HTML). Cek backend Anda.");
+      }
+      final errorData = jsonDecode(response.body);
+      throw Exception(errorData['message'] ?? "Gagal menambahkan mahasiswa.");
+    }
+  }
+
+  // ==========================================
+  // 5. UPDATE MAHASISWA
+  // ==========================================
+  Future<void> updateMahasiswa(String nim, Map<String, dynamic> body) async {
+    final headers = await _getHeaders();
+    headers['Content-Type'] = 'application/json';
+    
+    final response = await http.put(
+      Uri.parse(ApiConfig.updateMahasiswa(nim)),
+      headers: headers,
+      body: jsonEncode(body),
+    );
+
+    if (response.statusCode != 200 && response.statusCode != 204) {
+      if (response.body.trim().startsWith('<')) {
+        throw Exception("Server mengalami error (HTML). Cek backend Anda.");
+      }
+      final errorData = jsonDecode(response.body);
+      throw Exception(errorData['message'] ?? "Gagal memperbarui mahasiswa.");
+    }
+  }
 }

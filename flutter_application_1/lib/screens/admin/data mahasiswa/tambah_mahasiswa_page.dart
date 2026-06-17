@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_application_1/config/api_config.dart';
+import 'package:flutter_application_1/services/admin/mahasiswa_service.dart';
 
 class TambahMahasiswaPage extends StatefulWidget {
   const TambahMahasiswaPage({super.key});
@@ -107,43 +108,22 @@ class _TambahMahasiswaPageState extends State<TambahMahasiswaPage> {
     setState(() => isSaving = true);
 
     try {
-      final prefs = await SharedPreferences.getInstance();
-      final token = prefs.getString('token');
+      final body = {
+        "NIM": nimController.text.trim(),
+        "NAMA": namaController.text.trim(),
+        "EMAIL": emailController.text.trim(),
+        "NO_HP": noHpController.text.trim(),
+        "ID_JK": selectedGender == "Laki-laki" ? 1 : 0,
+        "ID_USER": 1,
+        "ID_STATUS_MHS": 1, // Aktif
+        "ID_PRODI": int.tryParse(selectedProdi ?? "") ?? selectedProdi,
+      };
 
-      final body = jsonEncode({
-        "nim": nimController.text.trim(),
-        "nama": namaController.text.trim(),
-        "email": emailController.text.trim(),
-        "no_hp": noHpController.text.trim(),
-        "jenis_kelamin": selectedGender,
-        "id_jurusan": selectedJurusan, 
-        "id_prodi": selectedProdi, 
-        "id_kelas": selectedKelas, 
-        "semester": selectedSemester,
-        "id_tahun_akademik": selectedTahunAkademik, 
-      });
+      await MahasiswaService().addMahasiswa(body);
 
-      final response = await http.post(
-        Uri.parse(ApiConfig.mahasiswa),
-        headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Authorization': 'Bearer $token',
-        },
-        body: body,
-      );
-
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Data berhasil ditambahkan!")));
-        Navigator.pop(context, true); 
-      } else {
-        if (response.body.trim().startsWith('<')) {
-           throw Exception("Server mengalami error (Halaman HTML). Cek backend Anda.");
-        }
-        final errorData = jsonDecode(response.body);
-        throw Exception(errorData['message'] ?? "Gagal menyimpan data ke server.");
-      }
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Data berhasil ditambahkan!")));
+      Navigator.pop(context, true); 
     } catch (e) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceAll("Exception: ", ""))));

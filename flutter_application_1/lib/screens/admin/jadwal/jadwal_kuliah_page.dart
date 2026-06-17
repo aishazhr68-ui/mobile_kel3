@@ -133,7 +133,7 @@ class _JadwalKuliahPageState extends State<JadwalKuliahPage> {
           Align(
             alignment: Alignment.centerRight,
             child: InkWell(
-              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => JadwalDetailPage(namaKelas: kelas.namaKelas))),
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (context) => JadwalDetailPage(idKelas: kelas.idKelas, namaKelas: kelas.namaKelas))),
               child: const Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [

@@ -102,7 +102,7 @@ class _PresensiPageState extends State<PresensiPage> {
                     iconBgColor: const Color(0xFFEFF6FF),
                     iconColor: const Color(0xFF3B82F6),
                     topWidget: const Text("29 Apr 2026", style: TextStyle(fontSize: 10, color: Colors.grey)),
-                    value: "45",
+                    value: daftarKelas.length.toString(),
                     label: "Total Kelas",
                   ),
                 ),

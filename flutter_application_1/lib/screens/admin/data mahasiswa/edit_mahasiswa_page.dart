@@ -16,13 +16,28 @@ class _EditMahasiswaPageState extends State<EditMahasiswaPage> {
 
   MahasiswaModel? editData;
   bool isLoading = true;
+  bool isSaving = false;
   final MahasiswaService _mahasiswaService = MahasiswaService();
+
+  final TextEditingController namaController = TextEditingController();
+  final TextEditingController emailController = TextEditingController();
+  final TextEditingController noHpController = TextEditingController();
+  final TextEditingController statusController = TextEditingController();
+  String? selectedGender;
 
   @override
   void initState() {
     super.initState();
-    // Panggil data detail agar form terisi otomatis dari API
     fetchData();
+  }
+
+  @override
+  void dispose() {
+    namaController.dispose();
+    emailController.dispose();
+    noHpController.dispose();
+    statusController.dispose();
+    super.dispose();
   }
 
   Future<void> fetchData() async {
@@ -31,11 +46,50 @@ class _EditMahasiswaPageState extends State<EditMahasiswaPage> {
       if (mounted) {
         setState(() {
           editData = data;
+          namaController.text = data.nama;
+          emailController.text = data.email;
+          noHpController.text = data.noHp;
+          selectedGender = (data.jenisKelamin.toLowerCase().contains("laki") || data.jenisKelamin == "1") ? "Laki-laki" : "Perempuan";
+          statusController.text = data.status;
           isLoading = false;
         });
       }
     } catch (e) {
-      if (mounted) setState(() => isLoading = false);
+      if (mounted) {
+        setState(() {
+          namaController.text = widget.mahasiswa.nama;
+          emailController.text = widget.mahasiswa.email;
+          noHpController.text = widget.mahasiswa.noHp;
+          selectedGender = (widget.mahasiswa.jenisKelamin.toLowerCase().contains("laki") || widget.mahasiswa.jenisKelamin == "1") ? "Laki-laki" : "Perempuan";
+          statusController.text = widget.mahasiswa.status;
+          isLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _updateData() async {
+    setState(() => isSaving = true);
+    try {
+      final body = {
+        "NAMA": namaController.text.trim(),
+        "EMAIL": emailController.text.trim(),
+        "NO_HP": noHpController.text.trim(),
+        "ID_JK": selectedGender == "Laki-laki" ? 1 : 0,
+        "ID_USER": 1,
+        "ID_STATUS_MHS": (statusController.text.trim().toUpperCase() == "AKTIF" || statusController.text.trim() == "1") ? 1 : 2,
+      };
+
+      await _mahasiswaService.updateMahasiswa(widget.mahasiswa.nim, body);
+
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text("Data berhasil diperbarui!")));
+      Navigator.pop(context, true);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(e.toString().replaceAll("Exception: ", ""))));
+    } finally {
+      if (mounted) setState(() => isSaving = false);
     }
   }
 
@@ -161,11 +215,11 @@ class _EditMahasiswaPageState extends State<EditMahasiswaPage> {
                   const SizedBox(height: 14),
 
                   // 🔥 Info dinamis
-                  _profileDetailRow("Program Studi", mhs.prodi ?? "Belum diatur"),
+                  _profileDetailRow("Program Studi", mhs.prodi),
                   const SizedBox(height: 12),
-                  _profileDetailRow("Tahun Akademik", mhs.tahunAkademik ?? "Belum diatur"),
+                  _profileDetailRow("Tahun Akademik", mhs.tahunAkademik),
                   const SizedBox(height: 12),
-                  _profileDetailRow("Kelas", mhs.kelas ?? "Belum diatur"),
+                  _profileDetailRow("Kelas", mhs.kelas),
                 ],
               ),
             ),
@@ -260,13 +314,13 @@ class _EditMahasiswaPageState extends State<EditMahasiswaPage> {
             ),
             const SizedBox(height: 16),
             _buildTextField("NIM", mhs.nim, isRequired: true),
-            _buildTextField("Nama Lengkap", mhs.nama, isRequired: true),
+            _buildTextField("Nama Lengkap", "", controller: namaController, isRequired: true),
             _buildTextField("Tanggal Lahir", mhs.tanggalLahir ?? "", isRequired: true, suffixIcon: Icons.calendar_today_outlined),
-            _buildTextField("Jenis Kelamin", mhs.jenisKelamin ?? "", isRequired: true), // Sementara pakai TextField biasa
-            _buildTextField("No. Hp", mhs.noHp ?? "", isRequired: true),
-            _buildTextField("Email", mhs.email ?? "", isRequired: true),
+            _buildDropdownField("Jenis Kelamin", selectedGender, ["Laki-laki", "Perempuan"], isRequired: true, onChanged: (val) => setState(() => selectedGender = val)), 
+            _buildTextField("No. Hp", "", controller: noHpController, isRequired: true),
+            _buildTextField("Email", "", controller: emailController, isRequired: true),
             _buildTextField("Agama", mhs.agama ?? "", isRequired: true),
-            _buildTextField("Status Mahasiswa", mhs.status, isRequired: true),
+            _buildTextField("Status Mahasiswa", "", controller: statusController, isRequired: true),
           ],
         );
 
@@ -390,7 +444,7 @@ class _EditMahasiswaPageState extends State<EditMahasiswaPage> {
   }
 
   // 🔥 Mengubah parameter menjadi data yang bisa langsung ditampilkan
-  Widget _buildTextField(String label, String initialValue, {bool isRequired = false, IconData? suffixIcon}) {
+  Widget _buildTextField(String label, String initialValue, {bool isRequired = false, IconData? suffixIcon, TextEditingController? controller}) {
     // Agar form tidak menampilkan string "null" jika data kosong
     final displayValue = initialValue == "null" || initialValue == "-" ? "" : initialValue;
     
@@ -407,7 +461,8 @@ class _EditMahasiswaPageState extends State<EditMahasiswaPage> {
           ),
           const SizedBox(height: 6),
           TextFormField(
-            initialValue: displayValue, // 🔥 Terisi dari API
+            controller: controller,
+            initialValue: controller == null ? displayValue : null, // 🔥 Terisi dari API
             style: const TextStyle(fontSize: 14, color: Color(0xFF0F172A)),
             decoration: InputDecoration(
               filled: true,
@@ -433,15 +488,40 @@ class _EditMahasiswaPageState extends State<EditMahasiswaPage> {
     );
   }
 
-  // CATATAN: Untuk kemudahan karena value dropdown harus persis dengan isi array 'options',
-  // saat ini saya ubah _buildDropdown menjadi _buildTextField agar data dari API (yang string bebas)
-  // bisa langsung masuk tanpa menyebabkan error render.
-  
-  /*
-  Widget _buildDropdown(String label, String? selectedValue, List<String> options, {bool isRequired = false}) {
-    return Padding(...);
+  Widget _buildDropdownField(String label, String? value, List<String> items, {required ValueChanged<String?> onChanged, bool isRequired = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF475569))),
+              if (isRequired) const Text(" *", style: TextStyle(fontSize: 12, color: Colors.red)),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: const Color(0xFFCBD5E1)),
+            ),
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: value,
+                isExpanded: true,
+                icon: const Icon(Icons.keyboard_arrow_down_rounded, color: Colors.grey),
+                items: items.map((String item) => DropdownMenuItem<String>(value: item, child: Text(item, style: const TextStyle(fontSize: 14, color: Color(0xFF0F172A))))).toList(),
+                onChanged: onChanged,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
-  */
 
   Widget _buildActionButtons() {
     return Row(
@@ -470,9 +550,7 @@ class _EditMahasiswaPageState extends State<EditMahasiswaPage> {
         // 🔹 BUTTON SIMPAN
         Expanded(
           child: ElevatedButton(
-            onPressed: () {
-              // aksi simpan update
-            },
+            onPressed: isSaving ? null : _updateData,
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF0D47A1),
               padding: const EdgeInsets.symmetric(vertical: 14),
@@ -481,13 +559,15 @@ class _EditMahasiswaPageState extends State<EditMahasiswaPage> {
               ),
               elevation: 0,
             ),
-            child: const Text(
-              "Simpan Perubahan",
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
+            child: isSaving
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                : const Text(
+                    "Simpan Perubahan",
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
           ),
         ),
       ],

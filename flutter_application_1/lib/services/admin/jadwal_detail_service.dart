@@ -6,13 +6,11 @@ import 'package:flutter_application_1/config/api_config.dart';
 import 'package:flutter_application_1/models/admin/jadwal_detail_model.dart';
 
 class JadwalDetailService {
- Future<List<JadwalMataKuliah>> getJadwalDetail(String namaKelas) async {
+ Future<List<JadwalMataKuliah>> getJadwalDetail(String idKelas) async {
   final prefs = await SharedPreferences.getInstance();
   final token = prefs.getString('token');
 
-  // Ganti parameter sesuai kebutuhan API Anda (cek apakah perlu id_kelas atau nama_kelas)
-  // Jika API Anda mengharapkan ID, pastikan Anda mengirim ID, bukan nama.
-  final url = Uri.parse("${ApiConfig.kelasMk}?nama_kelas=$namaKelas");
+  final url = Uri.parse("${ApiConfig.kelasMk}?id_kelas=$idKelas");
   
   debugPrint("Memanggil URL: $url");
 

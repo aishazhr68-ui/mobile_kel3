@@ -14,10 +14,16 @@ class JadwalKelasModel {
   factory JadwalKelasModel.fromJson(Map<String, dynamic> json) {
     return JadwalKelasModel(
       // Sesuaikan key di bawah ini dengan respon asli dari API Anda
-      idKelas: json['id']?.toString() ?? "-", 
-      namaKelas: json['nama_kelas']?.toString() ?? "Kelas Tidak Dikenal",
+      idKelas: json['id_kelas']?.toString() ?? json['id']?.toString() ?? "-", 
+      namaKelas: json['kelas_nama']?.toString() ?? json['nama_kelas']?.toString() ?? "Kelas Tidak Dikenal",
       programStudi: json['prodi']?['nama_prodi']?.toString() ?? "Prodi Tidak Diketahui",
-      jumlahMahasiswa: int.tryParse(json['jumlah_mahasiswa']?.toString() ?? "0") ?? 0,
+      jumlahMahasiswa: int.tryParse(
+        json['jumlah_mahasiswa']?.toString() ?? 
+        json['mahasiswas_count']?.toString() ?? 
+        json['mahasiswa_count']?.toString() ?? 
+        (json['mahasiswas'] is List ? (json['mahasiswas'] as List).length.toString() : null) ??
+        "0"
+      ) ?? 0,
     );
   }
 }

@@ -112,7 +112,7 @@ class _PresensiMetodeNumerikPageState extends State<PresensiMetodeNumerikPage> {
                 else
                   ...sortedStudents.map((s) {
                     String nim = (s["nim"] ?? s["NIM"] ?? "-").toString();
-                    String nama = (s["nama"] ?? s["NAMA"] ?? "Tanpa Nama").toString();
+                    String nama = (s["nama"] ?? s["NAMA"] ?? s["nama_mahasiswa"] ?? "Tanpa Nama").toString();
                     int hadir = int.tryParse((s["hadir"] ?? "0").toString()) ?? 0;
                     int total = int.tryParse((s["total"] ?? "16").toString()) ?? 16;
                     double persentase = total > 0 ? (hadir / total) * 100 : 0;

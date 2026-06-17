@@ -41,7 +41,7 @@ class _PresensiMatakuliahPageState extends State<PresensiMatakuliahPage> {
       };
 
       // 1. Ambil Data Dosen (Kamus NIP -> Nama)
-      final resDosen = await http.get(Uri.parse("https://api-admin-4c.rifkiaja.my.id:9002/api/dosen"), headers: headers);
+      final resDosen = await http.get(Uri.parse("https://api-pegawai-4c.akufarish.my.id:9001/api/dosen"), headers: headers);
       Map<String, String> mapNamaDosen = {};
       if (resDosen.statusCode == 200) {
         List<dynamic> listDosen = jsonDecode(resDosen.body);
@@ -60,7 +60,7 @@ class _PresensiMatakuliahPageState extends State<PresensiMatakuliahPage> {
 
         for (var item in listKelasMk) {
           if (item['id_kelas']?.toString() == widget.idKelas.toString()) {
-            String id = item['kurikulum_mk']?['id_mk']?.toString() ?? "-";
+            String id = item['id_kelas_mk']?.toString() ?? "-";
             String nama = item['kurikulum_mk']?['mata_kuliah']?['nama_mk'] ?? item['tema'] ?? "-";
             String nip = item['nip']?.toString().trim().toLowerCase() ?? "";
             

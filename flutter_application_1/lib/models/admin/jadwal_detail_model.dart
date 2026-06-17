@@ -27,18 +27,20 @@ class JadwalMataKuliah {
     }
 
     return JadwalMataKuliah(
-      // Coba akses key 'mata_kuliah', jika tidak ada, ambil langsung dari 'nama_mk'
-      namaMataKuliah: json['mata_kuliah'] != null 
-          ? getRelasi(json['mata_kuliah'], 'nama_mk') 
-          : (json['nama_mk']?.toString() ?? "Tanpa Nama"),
+      // Coba akses key 'kurikulum_mk' -> 'mata_kuliah' -> 'nama_mk', fallback ke 'mata_kuliah' -> 'nama_mk', lalu 'nama_mk'
+      namaMataKuliah: json['kurikulum_mk']?['mata_kuliah'] != null
+          ? getRelasi(json['kurikulum_mk']?['mata_kuliah'], 'nama_mk')
+          : (json['mata_kuliah'] != null 
+              ? getRelasi(json['mata_kuliah'], 'nama_mk') 
+              : (json['nama_mk']?.toString() ?? "Tanpa Nama")),
 
       // Coba akses key 'hari', jika tidak ada, ambil langsung dari 'hari'
       hari: json['hari'] != null 
           ? getRelasi(json['hari'], 'nama_hari') 
           : (json['hari']?.toString() ?? "Tidak Diketahui"),
 
-      // Waktu biasanya gabungan jam_mulai dan jam_selesai
-      waktu: "${json['jam_mulai'] ?? '00:00'} - ${json['jam_selesai'] ?? '00:00'}",
+      // Waktu biasanya gabungan waktu_mulai/jam_mulai dan waktu_akhir/jam_selesai
+      waktu: "${json['waktu_mulai'] ?? json['jam_mulai'] ?? '00:00'} - ${json['waktu_akhir'] ?? json['jam_selesai'] ?? '00:00'}",
 
       // Coba akses key 'ruang', jika tidak ada, ambil langsung dari 'ruang'
       ruang: json['ruang'] != null 
@@ -50,7 +52,7 @@ class JadwalMataKuliah {
           ? getRelasi(json['dosen'], 'nama_pegawai') 
           : (json['dosen']?.toString() ?? "-"),
 
-      sks: int.tryParse(json['sks']?.toString() ?? "0") ?? 0,
+      sks: int.tryParse(json['kurikulum_mk']?['mata_kuliah']?['sks']?.toString() ?? json['sks']?.toString() ?? "0") ?? 0,
     );
   }
 }

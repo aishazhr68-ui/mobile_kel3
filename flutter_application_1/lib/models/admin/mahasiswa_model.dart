@@ -105,7 +105,11 @@ class MahasiswaModel {
       email: (json['email'] ?? json['EMAIL'] ?? "-").toString(),
       noHp: (json['no_hp'] ?? json['nohp'] ?? json['NO_HP'] ?? "-").toString(),
       tanggalLahir: (json['tanggal_lahir'] ?? json['TANGGAL_LAHIR'] ?? "-").toString(),
-      jenisKelamin: (json['jenis_kelamin'] ?? json['jk'] ?? json['JENIS_KELAMIN'] ?? "-").toString(),
+      jenisKelamin: (json['jenis_kelamin'] ?? 
+                     json['jk'] ?? 
+                     json['JENIS_KELAMIN'] ?? 
+                     ((json['id_jk']?.toString() == "1" || json['ID_JK']?.toString() == "1") ? "Laki-laki" : 
+                      (json['id_jk']?.toString() == "0" || json['ID_JK']?.toString() == "0") ? "Perempuan" : "-")).toString(),
       agama: (json['agama'] ?? json['AGAMA'] ?? "-").toString(),
       status: (json['status']?.toString().toUpperCase() == "AKTIF" || 
          json['id_status_mhs']?.toString() == "1" || 
