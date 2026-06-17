@@ -73,6 +73,16 @@ class _PresensiMatakuliahPageState extends State<PresensiMatakuliahPage> {
         }
       }
 
+      if (hasil.isEmpty) {
+        // Fallback dummy data jika API / server kosong atau offline
+        hasil = [
+          {"idMk": "9", "namaMk": "Cloud Computing", "namaDosen": "Agus S. B. N., S. T., M. Kom."},
+          {"idMk": "10", "namaMk": "Rekayasa Perangkat Lunak", "namaDosen": "Nitami Lestari Putri, S. Kom. M. Kom."},
+          {"idMk": "11", "namaMk": "Metode Numerik", "namaDosen": "Rahimi Fitri, S.Kom, M.Kom"},
+          {"idMk": "12", "namaMk": "Kecerdasan Buatan", "namaDosen": "Dr. Kun Nursyafii PP, S.T., M.Kom"},
+        ];
+      }
+
       if (mounted) {
         setState(() {
           daftarMatakuliah = hasil;
@@ -80,7 +90,18 @@ class _PresensiMatakuliahPageState extends State<PresensiMatakuliahPage> {
         });
       }
     } catch (e) {
-      if (mounted) setState(() => isLoading = false);
+      List<Map<String, dynamic>> hasil = [
+        {"idMk": "9", "namaMk": "Cloud Computing", "namaDosen": "Agus S. B. N., S. T., M. Kom."},
+        {"idMk": "10", "namaMk": "Rekayasa Perangkat Lunak", "namaDosen": "Nitami Lestari Putri, S. Kom. M. Kom."},
+        {"idMk": "11", "namaMk": "Metode Numerik", "namaDosen": "Rahimi Fitri, S.Kom, M.Kom"},
+        {"idMk": "12", "namaMk": "Kecerdasan Buatan", "namaDosen": "Dr. Kun Nursyafii PP, S.T., M.Kom"},
+      ];
+      if (mounted) {
+        setState(() {
+          daftarMatakuliah = hasil;
+          isLoading = false;
+        });
+      }
       debugPrint("Error: $e");
     }
   }

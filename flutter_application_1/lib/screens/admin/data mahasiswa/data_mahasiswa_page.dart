@@ -24,6 +24,8 @@ class _DataMahasiswaPageState extends State<DataMahasiswaPage> {
   final MahasiswaService mahasiswaService = MahasiswaService();
   List<MahasiswaModel> filteredMahasiswa = []; // List yang akan ditampilkan
   TextEditingController searchController = TextEditingController();
+  String selectedProdiFilter = "Semua";
+  String selectedSemesterFilter = "Semua";
 
   @override
   void initState() {
@@ -56,7 +58,7 @@ Future<void> loadData({bool isLoadMoreAction = false}) async {
           } else {
             mahasiswa = data;       // Reset untuk load awal/refresh
           }
-          filteredMahasiswa = mahasiswa;
+          _runFilter();
           isLoading = false;
           isLoadMore = false;
         });
@@ -72,20 +74,28 @@ Future<void> loadData({bool isLoadMoreAction = false}) async {
     }
   }
 
-  void _runFilter(String enteredKeyword) {
-  List<MahasiswaModel> results = [];
-  if (enteredKeyword.isEmpty) {
-    results = mahasiswa;
-  } else {
-    results = mahasiswa.where((mhs) =>
-        mhs.nama.toLowerCase().contains(enteredKeyword.toLowerCase()) ||
-        mhs.nim.toLowerCase().contains(enteredKeyword.toLowerCase())).toList();
-  }
+  void _runFilter() {
+    final enteredKeyword = searchController.text.trim().toLowerCase();
+    List<MahasiswaModel> results = mahasiswa;
 
-  setState(() {
-    filteredMahasiswa = results;
-  });
-}
+    if (enteredKeyword.isNotEmpty) {
+      results = results.where((mhs) =>
+          mhs.nama.toLowerCase().contains(enteredKeyword) ||
+          mhs.nim.toLowerCase().contains(enteredKeyword)).toList();
+    }
+
+    if (selectedProdiFilter != "Semua") {
+      results = results.where((mhs) => mhs.prodi.toLowerCase().contains(selectedProdiFilter.toLowerCase())).toList();
+    }
+
+    if (selectedSemesterFilter != "Semua") {
+      results = results.where((mhs) => mhs.kelas.toLowerCase().contains(selectedSemesterFilter.toLowerCase()) || mhs.tahunAkademik.toLowerCase().contains(selectedSemesterFilter.toLowerCase())).toList();
+    }
+
+    setState(() {
+      filteredMahasiswa = results;
+    });
+  }
 
   // ================= FUNGSI PROSES HAPUS (API) =================
   Future<void> _prosesHapusMahasiswa(BuildContext context, String nim) async {
@@ -252,7 +262,7 @@ Future<void> loadData({bool isLoadMoreAction = false}) async {
               // ===== SEARCH =====
               TextField(
                 controller: searchController,
-                onChanged: (value) => _runFilter(value),
+                onChanged: (value) => _runFilter(),
                 decoration: InputDecoration(
                   hintText: "Cari NIM atau Nama...",
                   prefixIcon: const Icon(Icons.search),
@@ -267,9 +277,19 @@ Future<void> loadData({bool isLoadMoreAction = false}) async {
               // ===== FILTER =====
               Row(
                 children: [
-                  _filterBox("PRODI", "Semua"),
+                  _filterBox("PRODI", selectedProdiFilter, ["Semua", "Sistem Informasi", "Teknik Informatika", "Akuntansi", "Teknik Mesin"], (val) {
+                    setState(() {
+                      selectedProdiFilter = val!;
+                      _runFilter();
+                    });
+                  }),
                   const SizedBox(width: 10),
-                  _filterBox("SEMESTER", "Semua"),
+                  _filterBox("SEMESTER", selectedSemesterFilter, ["Semua", "1", "2", "3", "4", "5", "6", "7", "8"], (val) {
+                    setState(() {
+                      selectedSemesterFilter = val!;
+                      _runFilter();
+                    });
+                  }),
                 ],
               ),
               const SizedBox(height: 20),
@@ -408,7 +428,7 @@ Future<void> loadData({bool isLoadMoreAction = false}) async {
   }
 
   // ================= FILTER =================
-  Widget _filterBox(String title, String value) {
+  Widget _filterBox(String title, String value, List<String> items, ValueChanged<String?> onChanged) {
     return Expanded(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -416,18 +436,22 @@ Future<void> loadData({bool isLoadMoreAction = false}) async {
           Text(title, style: const TextStyle(fontSize: 11, fontWeight: FontWeight.w600, color: Color(0xFF2563EB))),
           const SizedBox(height: 6),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+            padding: const EdgeInsets.symmetric(horizontal: 12),
+            height: 44,
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(20),
               border: Border.all(color: Colors.grey.shade300),
             ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(value, style: const TextStyle(fontSize: 13)),
-                const Icon(Icons.keyboard_arrow_down, size: 18),
-              ],
+            child: DropdownButtonHideUnderline(
+              child: DropdownButton<String>(
+                value: value,
+                isExpanded: true,
+                icon: const Icon(Icons.keyboard_arrow_down, size: 18),
+                style: const TextStyle(fontSize: 13, color: Colors.black87),
+                items: items.map((String val) => DropdownMenuItem(value: val, child: Text(val))).toList(),
+                onChanged: onChanged,
+              ),
             ),
           ),
         ],

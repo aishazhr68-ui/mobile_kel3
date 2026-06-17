@@ -23,7 +23,9 @@ class _EditMahasiswaPageState extends State<EditMahasiswaPage> {
   final TextEditingController emailController = TextEditingController();
   final TextEditingController noHpController = TextEditingController();
   final TextEditingController statusController = TextEditingController();
+  final TextEditingController tanggalLahirController = TextEditingController();
   String? selectedGender;
+  String? selectedAgama;
 
   @override
   void initState() {
@@ -37,6 +39,7 @@ class _EditMahasiswaPageState extends State<EditMahasiswaPage> {
     emailController.dispose();
     noHpController.dispose();
     statusController.dispose();
+    tanggalLahirController.dispose();
     super.dispose();
   }
 
@@ -50,6 +53,8 @@ class _EditMahasiswaPageState extends State<EditMahasiswaPage> {
           emailController.text = data.email;
           noHpController.text = data.noHp;
           selectedGender = (data.jenisKelamin.toLowerCase().contains("laki") || data.jenisKelamin == "1") ? "Laki-laki" : "Perempuan";
+          selectedAgama = (data.agama == "-" || data.agama == "null" || data.agama.isEmpty) ? "Islam" : data.agama;
+          tanggalLahirController.text = (data.tanggalLahir == "-" || data.tanggalLahir == "null") ? "" : data.tanggalLahir;
           statusController.text = data.status;
           isLoading = false;
         });
@@ -61,6 +66,8 @@ class _EditMahasiswaPageState extends State<EditMahasiswaPage> {
           emailController.text = widget.mahasiswa.email;
           noHpController.text = widget.mahasiswa.noHp;
           selectedGender = (widget.mahasiswa.jenisKelamin.toLowerCase().contains("laki") || widget.mahasiswa.jenisKelamin == "1") ? "Laki-laki" : "Perempuan";
+          selectedAgama = (widget.mahasiswa.agama == "-" || widget.mahasiswa.agama == "null" || widget.mahasiswa.agama.isEmpty) ? "Islam" : widget.mahasiswa.agama;
+          tanggalLahirController.text = (widget.mahasiswa.tanggalLahir == "-" || widget.mahasiswa.tanggalLahir == "null") ? "" : widget.mahasiswa.tanggalLahir;
           statusController.text = widget.mahasiswa.status;
           isLoading = false;
         });
@@ -71,13 +78,24 @@ class _EditMahasiswaPageState extends State<EditMahasiswaPage> {
   Future<void> _updateData() async {
     setState(() => isSaving = true);
     try {
+      final Map<String, int> agamaMap = {
+        "Islam": 1,
+        "Kristen": 2,
+        "Katolik": 3,
+        "Hindu": 4,
+        "Budha": 5,
+        "Konghucu": 6
+      };
+
       final body = {
         "NAMA": namaController.text.trim(),
         "EMAIL": emailController.text.trim(),
-        "NO_HP": noHpController.text.trim(),
+        "NO_HP": int.tryParse(noHpController.text.trim()) ?? 0,
         "ID_JK": selectedGender == "Laki-laki" ? 1 : 0,
         "ID_USER": 1,
         "ID_STATUS_MHS": (statusController.text.trim().toUpperCase() == "AKTIF" || statusController.text.trim() == "1") ? 1 : 2,
+        "ID_AGAMA": agamaMap[selectedAgama] ?? 1,
+        "TANGGAL_LAHIR": tanggalLahirController.text.isNotEmpty ? tanggalLahirController.text.trim() : null,
       };
 
       await _mahasiswaService.updateMahasiswa(widget.mahasiswa.nim, body);
@@ -315,11 +333,11 @@ class _EditMahasiswaPageState extends State<EditMahasiswaPage> {
             const SizedBox(height: 16),
             _buildTextField("NIM", mhs.nim, isRequired: true),
             _buildTextField("Nama Lengkap", "", controller: namaController, isRequired: true),
-            _buildTextField("Tanggal Lahir", mhs.tanggalLahir ?? "", isRequired: true, suffixIcon: Icons.calendar_today_outlined),
+            _buildDatePickerField("Tanggal Lahir", tanggalLahirController, isRequired: true),
             _buildDropdownField("Jenis Kelamin", selectedGender, ["Laki-laki", "Perempuan"], isRequired: true, onChanged: (val) => setState(() => selectedGender = val)), 
             _buildTextField("No. Hp", "", controller: noHpController, isRequired: true),
             _buildTextField("Email", "", controller: emailController, isRequired: true),
-            _buildTextField("Agama", mhs.agama ?? "", isRequired: true),
+            _buildDropdownField("Agama", selectedAgama, ["Islam", "Kristen", "Katolik", "Hindu", "Budha", "Konghucu"], isRequired: true, onChanged: (val) => setState(() => selectedAgama = val)),
             _buildTextField("Status Mahasiswa", "", controller: statusController, isRequired: true),
           ],
         );
@@ -517,6 +535,65 @@ class _EditMahasiswaPageState extends State<EditMahasiswaPage> {
                 onChanged: onChanged,
               ),
             ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDatePickerField(String label, TextEditingController controller, {bool isRequired = false}) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(label, style: const TextStyle(fontSize: 12, color: Color(0xFF475569))),
+              if (isRequired) const Text(" *", style: TextStyle(fontSize: 12, color: Colors.red)),
+            ],
+          ),
+          const SizedBox(height: 6),
+          TextFormField(
+            controller: controller,
+            readOnly: true,
+            style: const TextStyle(fontSize: 14, color: Color(0xFF0F172A)),
+            decoration: InputDecoration(
+              filled: true,
+              fillColor: Colors.white,
+              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 14),
+              prefixIcon: const Icon(Icons.calendar_today_outlined, size: 18, color: Colors.grey),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Color(0xFFCBD5E1)),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+                borderSide: const BorderSide(color: Color(0xFF2563EB)),
+              ),
+            ),
+            onTap: () async {
+              DateTime initial = DateTime.now().subtract(const Duration(days: 365 * 18));
+              if (controller.text.isNotEmpty) {
+                try {
+                  initial = DateTime.parse(controller.text);
+                } catch (_) {}
+              }
+              DateTime? pickedDate = await showDatePicker(
+                context: context,
+                initialDate: initial,
+                firstDate: DateTime(1970),
+                lastDate: DateTime.now(),
+              );
+              if (pickedDate != null) {
+                String formattedDate = "${pickedDate.year}-${pickedDate.month.toString().padLeft(2, '0')}-${pickedDate.day.toString().padLeft(2, '0')}";
+                controller.text = formattedDate;
+              }
+            },
           ),
         ],
       ),

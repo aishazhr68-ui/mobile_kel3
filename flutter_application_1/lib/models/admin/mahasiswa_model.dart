@@ -110,7 +110,23 @@ class MahasiswaModel {
                      json['JENIS_KELAMIN'] ?? 
                      ((json['id_jk']?.toString() == "1" || json['ID_JK']?.toString() == "1") ? "Laki-laki" : 
                       (json['id_jk']?.toString() == "0" || json['ID_JK']?.toString() == "0") ? "Perempuan" : "-")).toString(),
-      agama: (json['agama'] ?? json['AGAMA'] ?? "-").toString(),
+      agama: () {
+        final rawAgama = json['agama'] ?? json['AGAMA'];
+        if (rawAgama != null && rawAgama.toString().trim() != "-" && rawAgama.toString().trim() != "null" && rawAgama.toString().trim().isNotEmpty) {
+          return rawAgama.toString();
+        }
+        final idAgama = json['id_agama'] ?? json['ID_AGAMA'];
+        if (idAgama != null) {
+          final idStr = idAgama.toString();
+          if (idStr == "1") return "Islam";
+          if (idStr == "2") return "Kristen";
+          if (idStr == "3") return "Katolik";
+          if (idStr == "4") return "Hindu";
+          if (idStr == "5") return "Budha";
+          if (idStr == "6") return "Konghucu";
+        }
+        return "-";
+      }(),
       status: (json['status']?.toString().toUpperCase() == "AKTIF" || 
          json['id_status_mhs']?.toString() == "1" || 
          json['ID_STATUS_MHS']?.toString() == "1") 
